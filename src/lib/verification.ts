@@ -5,17 +5,23 @@ import {
   extractAlcoholPercentage, 
   extractVolume, 
   checkGovernmentWarning, 
-  fuzzyMatch 
+  fuzzyMatch,
+  extractBrandName,
+  extractProductClass
 } from '@/utils/textProcessing';
 
 export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): VerificationResult {
   const extractedText = ocrResult.text;
   
-  // Extract brand name (look for exact or fuzzy match)
-  const brandNameMatch = fuzzyMatch(formData.brandName, extractedText);
+  // Extract brand name from OCR text
+  const extractedBrandName = extractBrandName(extractedText);
+  const brandNameMatch = extractedBrandName !== null && 
+    fuzzyMatch(formData.brandName, extractedBrandName);
   
-  // Extract product class (look for fuzzy match)
-  const productClassMatch = fuzzyMatch(formData.productClass, extractedText);
+  // Extract product class from OCR text
+  const extractedProductClass = extractProductClass(extractedText);
+  const productClassMatch = extractedProductClass !== null && 
+    fuzzyMatch(formData.productClass, extractedProductClass);
   
   // Extract alcohol content
   const extractedAlcohol = extractAlcoholPercentage(extractedText);
@@ -44,12 +50,12 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
   return {
     brandName: {
       match: brandNameMatch,
-      extracted: formData.brandName, // In a real implementation, we'd extract this from OCR
+      extracted: extractedBrandName || '',
       expected: formData.brandName,
     },
     productClass: {
       match: productClassMatch,
-      extracted: formData.productClass, // In a real implementation, we'd extract this from OCR
+      extracted: extractedProductClass || '',
       expected: formData.productClass,
     },
     alcoholContent: {
