@@ -14,7 +14,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
   const [formData, setFormData] = useState<TTBFormData>({
     brandName: '',
     productClass: '',
-    alcoholContent: 0,
+    alcoholContent: undefined,
     netContents: '',
   });
 
@@ -31,7 +31,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
       newErrors.productClass = 'Product class is required';
     }
 
-    if (formData.alcoholContent <= 0 || formData.alcoholContent > 100) {
+    if (formData.alcoholContent !== undefined && (formData.alcoholContent <= 0 || formData.alcoholContent > 100)) {
       newErrors.alcoholContent = 'Alcohol content must be between 0 and 100%';
     }
 
@@ -46,7 +46,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     }
   };
 
-  const handleInputChange = (field: keyof TTBFormData, value: string | number) => {
+  const handleInputChange = (field: keyof TTBFormData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -113,14 +113,14 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
 
       <div>
         <label htmlFor="alcoholContent" className="block text-sm font-medium text-gray-700 mb-2">
-          Alcohol Content (ABV) *
+          Alcohol Content (ABV) (Optional)
         </label>
         <div className="relative">
           <input
             type="number"
             id="alcoholContent"
             value={formData.alcoholContent || ''}
-            onChange={(e) => handleInputChange('alcoholContent', parseFloat(e.target.value) || 0)}
+            onChange={(e) => handleInputChange('alcoholContent', e.target.value ? parseFloat(e.target.value) : undefined)}
             className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.alcoholContent ? 'border-red-500' : 'border-gray-300'
             }`}

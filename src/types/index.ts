@@ -3,7 +3,7 @@
 export interface TTBFormData {
   brandName: string;
   productClass: string;
-  alcoholContent: number;
+  alcoholContent?: number;
   netContents?: string;
 }
 
@@ -23,7 +23,7 @@ export interface VerificationResult {
     extracted: string;
     expected: string;
   };
-  alcoholContent: {
+  alcoholContent?: {
     match: boolean;
     extracted: number;
     expected: number;

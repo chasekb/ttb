@@ -72,16 +72,18 @@ export default function ResultsDisplay({ result, onRetry }: ResultsDisplayProps)
           </span>
         </div>
 
-        {/* Alcohol Content */}
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center space-x-3">
-            {getStatusIcon(result.alcoholContent.match)}
-            <span className="font-medium">Alcohol Content</span>
+        {/* Alcohol Content (if provided) */}
+        {result.alcoholContent && (
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              {getStatusIcon(result.alcoholContent.match)}
+              <span className="font-medium">Alcohol Content</span>
+            </div>
+            <span className={`font-medium ${getStatusColor(result.alcoholContent.match)}`}>
+              {getStatusText(result.alcoholContent.match)}
+            </span>
           </div>
-          <span className={`font-medium ${getStatusColor(result.alcoholContent.match)}`}>
-            {getStatusText(result.alcoholContent.match)}
-          </span>
-        </div>
+        )}
 
         {/* Net Contents (if provided) */}
         {result.netContents && (
@@ -119,7 +121,7 @@ export default function ResultsDisplay({ result, onRetry }: ResultsDisplayProps)
             {!result.productClass.match && (
               <li>• Product class mismatch: Expected &quot;{result.productClass.expected}&quot;</li>
             )}
-            {!result.alcoholContent.match && (
+            {result.alcoholContent && !result.alcoholContent.match && (
               <li>• Alcohol content mismatch: Expected {result.alcoholContent.expected}%, found {result.alcoholContent.extracted}%</li>
             )}
             {result.netContents && !result.netContents.match && (

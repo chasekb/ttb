@@ -23,10 +23,13 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
   const productClassMatch = extractedProductClass !== null && 
     fuzzyMatch(formData.productClass, extractedProductClass);
   
-  // Extract alcohol content
+  // Extract alcohol content (if provided in form)
   const extractedAlcohol = extractAlcoholPercentage(extractedText);
-  const alcoholContentMatch = extractedAlcohol !== null && 
-    Math.abs(extractedAlcohol - formData.alcoholContent) <= 0.1;
+  let alcoholContentMatch = true;
+  if (formData.alcoholContent !== undefined) {
+    alcoholContentMatch = extractedAlcohol !== null && 
+      Math.abs(extractedAlcohol - formData.alcoholContent) <= 0.1;
+  }
   
   // Extract net contents (if provided)
   let netContentsMatch = true;
@@ -58,11 +61,11 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
       extracted: extractedProductClass || '',
       expected: formData.productClass,
     },
-    alcoholContent: {
+    alcoholContent: formData.alcoholContent !== undefined ? {
       match: alcoholContentMatch,
       extracted: extractedAlcohol || 0,
       expected: formData.alcoholContent,
-    },
+    } : undefined,
     netContents: formData.netContents ? {
       match: netContentsMatch,
       extracted: extractedNetContents || '',
