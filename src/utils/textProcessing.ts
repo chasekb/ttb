@@ -62,7 +62,7 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
   return { found: false };
 }
 
-export function fuzzyMatch(expected: string, extracted: string, threshold: number = 0.8): boolean {
+export function fuzzyMatch(expected: string, extracted: string): boolean {
   const normalizedExpected = normalizeText(expected);
   const normalizedExtracted = normalizeText(extracted);
   

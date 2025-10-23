@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface ImageUploadProps {
   onImageSelect: (file: File) => void;
@@ -104,9 +105,11 @@ export default function ImageUpload({ onImageSelect, isLoading = false }: ImageU
         {previewUrl ? (
           <div className="space-y-4">
             <div className="relative">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Preview"
+                width={400}
+                height={256}
                 className="max-h-64 w-full object-contain rounded-lg"
               />
               <button
@@ -120,7 +123,7 @@ export default function ImageUpload({ onImageSelect, isLoading = false }: ImageU
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                {selectedFile?.name} ({(selectedFile?.size! / 1024 / 1024).toFixed(2)} MB)
+                {selectedFile?.name} ({selectedFile?.size ? (selectedFile.size / 1024 / 1024).toFixed(2) : '0'} MB)
               </p>
             </div>
           </div>

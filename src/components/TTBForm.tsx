@@ -18,10 +18,10 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     netContents: '',
   });
 
-  const [errors, setErrors] = useState<Partial<TTBFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<TTBFormData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.brandName.trim()) {
       newErrors.brandName = 'Brand name is required';
@@ -50,7 +50,11 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 

@@ -114,16 +114,16 @@ export default function ResultsDisplay({ result, onRetry }: ResultsDisplayProps)
           <h4 className="font-semibold text-red-800 mb-2">Issues Found:</h4>
           <ul className="space-y-1 text-sm text-red-700">
             {!result.brandName.match && (
-              <li>• Brand name mismatch: Expected "{result.brandName.expected}"</li>
+              <li>• Brand name mismatch: Expected &quot;{result.brandName.expected}&quot;</li>
             )}
             {!result.productClass.match && (
-              <li>• Product class mismatch: Expected "{result.productClass.expected}"</li>
+              <li>• Product class mismatch: Expected &quot;{result.productClass.expected}&quot;</li>
             )}
             {!result.alcoholContent.match && (
               <li>• Alcohol content mismatch: Expected {result.alcoholContent.expected}%, found {result.alcoholContent.extracted}%</li>
             )}
             {result.netContents && !result.netContents.match && (
-              <li>• Net contents mismatch: Expected "{result.netContents.expected}"</li>
+              <li>• Net contents mismatch: Expected &quot;{result.netContents.expected}&quot;</li>
             )}
             {!result.governmentWarning.found && (
               <li>• Government warning text not found on label</li>

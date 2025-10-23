@@ -4,12 +4,12 @@ import { useState } from 'react';
 import TTBForm from '@/components/TTBForm';
 import ImageUpload from '@/components/ImageUpload';
 import ResultsDisplay from '@/components/ResultsDisplay';
-import { TTBFormData, VerificationResult, OCRResult, ProcessingError } from '@/types';
+import { TTBFormData, VerificationResult } from '@/types';
 import { extractTextFromImage, isOCRResult } from '@/utils/ocr';
 import { verifyLabel } from '@/lib/verification';
 
 export default function Home() {
-  const [formData, setFormData] = useState<TTBFormData | null>(null);
+  const [, setFormData] = useState<TTBFormData | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
