@@ -84,13 +84,7 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
         };
       }
 
-      // Check for Google Cloud credentials
-      if (!process.env.GOOGLE_CLOUD_PROJECT_ID || !process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
-        return {
-          type: 'OCR_FAILED',
-          message: 'Google Cloud Vision API credentials not configured. Please use Tesseract or configure Google Cloud credentials.',
-        };
-      }
+      // Note: Credential validation is handled server-side in the API route
 
       // Convert file to base64
       const base64Image = await this.fileToBase64(imageFile);
