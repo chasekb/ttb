@@ -66,6 +66,11 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
     /warning.*pregnant/gi,
     /warning.*driving/gi,
     /warning.*health/gi,
+    // French/European warnings
+    /abus\s*dangereux/gi,
+    /consommer\s*avec\s*modération/gi,
+    /interdit\s*aux\s*moins\s*de\s*18\s*ans/gi,
+    /déconseillé\s*aux\s*femmes\s*enceintes/gi,
   ];
 
   for (const pattern of warningPatterns) {
@@ -86,12 +91,14 @@ export function extractBrandName(text: string): string | null {
   // Define patterns that indicate non-brand text
   const nonBrandPatterns = [
     // Regulatory and warning text
-    /government|warning|alcohol|volume|ml|oz/i,
+    /government|warning|alcohol|volume|ml|oz|appellation|origine|controlee|vcp|brut|reims|france|produit|elabore|alc|by\s*volume|product\s*of/i,
     // Descriptive marketing text
-    /established|nature|choicest|products|provide|prized|flavor|finest|hops|grains|selected|americas|best/i,
+    /established|nature|choicest|products|provide|prized|flavor|finest|hops|grains|selected|americas|best|maison|fondée/i,
     // Pure numbers and measurements
     /^\d+$/,
     /^\d+\s*(ml|oz|fl\.?oz)$/i,
+    // French wine-specific regulatory text
+    /^\d{4}$/, // Years like "1772"
   ];
   
   // Helper function to check if text matches non-brand patterns
@@ -101,6 +108,25 @@ export function extractBrandName(text: string): string | null {
            normalized.length < 3 ||
            normalized.length > 50;
   };
+  
+  // Look for known brand patterns first (more specific matching)
+  const knownBrandPatterns = [
+    /veuve\s+clicquot/gi,
+    /dom\s+pérignon/gi,
+    /moët\s+et\s+chandon/gi,
+    /krug/gi,
+    /taittinger/gi,
+    /pol\s+roger/gi,
+    /bollinger/gi,
+    /perrier\s+jouët/gi,
+  ];
+  
+  for (const pattern of knownBrandPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[0].trim();
+    }
+  }
   
   // First, try to find multi-line brand names (like "Pabst Blue Ribbon")
   for (let i = 0; i < lines.length - 1; i++) {
