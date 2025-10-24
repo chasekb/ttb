@@ -5,7 +5,6 @@ import {
   extractAlcoholPercentage, 
   extractVolume, 
   checkGovernmentWarning, 
-  fuzzyMatch,
   extractBrandName,
   extractProductClass
 } from '@/utils/textProcessing';

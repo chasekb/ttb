@@ -4,10 +4,6 @@ export function normalizeText(text: string): string {
   return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
 }
 
-export function normalizeTextForWords(text: string): string {
-  return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
-}
-
 export function extractAlcoholPercentage(text: string, expectedAlcohol?: number): number | null {
   // If we have an expected alcohol percentage, search for it directly in the text
   if (expectedAlcohol !== undefined) {
@@ -35,6 +31,8 @@ export function extractAlcoholPercentage(text: string, expectedAlcohol?: number)
     // If no exact match found, return null (indicating mismatch)
     return null;
   }
+  
+  return null;
 }
 
 export function extractVolume(text: string, expectedVolume?: string): string | null {
@@ -45,19 +43,6 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
     
     // Direct match
     if (normalizedText.includes(normalizedExpected)) {
-      return expectedVolume;
-    }
-    
-    // Try fuzzy matching for OCR errors
-    const words = normalizedText.split(/\s+/);
-    const expectedWords = normalizedExpected.split(/\s+/);
-    
-    // Check if all expected words are present (with fuzzy matching)
-    const allWordsFound = expectedWords.every(expectedWord => 
-      words.some(word => isBrandNameMatch(expectedWord, word))
-    );
-    
-    if (allWordsFound) {
       return expectedVolume;
     }
   }
@@ -122,21 +107,7 @@ export function extractBrandName(text: string, expectedBrandName?: string): stri
     if (normalizedText.includes(normalizedExpected)) {
       return expectedBrandName;
     }
-    
-    // Try fuzzy matching for OCR errors
-    const words = normalizedText.split(/\s+/);
-    const expectedWords = normalizedExpected.split(/\s+/);
-    
-    // Check if all expected words are present (with fuzzy matching)
-    const allWordsFound = expectedWords.every(expectedWord => 
-      words.some(word => isBrandNameMatch(expectedWord, word))
-    );
-    
-    if (allWordsFound) {
-      return expectedBrandName;
-    }
   }
-  
   
   return null;
 }
@@ -151,112 +122,8 @@ export function extractProductClass(text: string, expectedProductClass?: string)
     if (normalizedText.includes(normalizedExpected)) {
       return expectedProductClass;
     }
-    
-    // Try fuzzy matching for OCR errors
-    const words = normalizedText.split(/\s+/);
-    const expectedWords = normalizedExpected.split(/\s+/);
-    
-    // Check if all expected words are present (with fuzzy matching)
-    const allWordsFound = expectedWords.every(expectedWord => 
-      words.some(word => isBrandNameMatch(expectedWord, word))
-    );
-    
-    if (allWordsFound) {
-      return expectedProductClass;
-    }
   }
   
   return null;
 }
 
-export function fuzzyMatch(expected: string, extracted: string): boolean {
-  const normalizedExpected = normalizeText(expected);
-  const normalizedExtracted = normalizeText(extracted);
-  
-  // Exact match
-  if (normalizedExpected === normalizedExtracted) {
-    return true;
-  }
-  
-  // Check if extracted text contains expected text
-  if (normalizedExtracted.includes(normalizedExpected)) {
-    return true;
-  }
-  
-  // Check if expected text contains extracted text
-  if (normalizedExpected.includes(normalizedExtracted)) {
-    return true;
-  }
-  
-  // For brand names, handle OCR errors by checking character similarity
-  if (isBrandNameMatch(normalizedExpected, normalizedExtracted)) {
-    return true;
-  }
-  
-  // For product classes, check if key terms match
-  // This handles cases like "Bourbon Whiskey" vs "Kentucky Straight Bourbon Whiskey"
-  const expectedWords = normalizeTextForWords(expected).split(/\s+/).filter(word => word.length > 2);
-  const extractedWords = normalizeTextForWords(extracted).split(/\s+/).filter(word => word.length > 2);
-  
-  // Check if all significant words from expected are present in extracted
-  const allExpectedWordsFound = expectedWords.every(expectedWord => 
-    extractedWords.some(extractedWord => extractedWord.includes(expectedWord))
-  );
-  
-  if (allExpectedWordsFound) {
-    return true;
-  }
-  
-  // Additional check: reverse word matching for cases like "Beer" vs "BEER"
-  const reverseMatch = extractedWords.every(extractedWord => 
-    expectedWords.some(expectedWord => expectedWord.includes(extractedWord))
-  );
-  
-  if (reverseMatch && expectedWords.length === extractedWords.length) {
-    return true;
-  }
-  
-  return false;
-}
-
-// Helper function to handle OCR errors in brand names
-function isBrandNameMatch(expected: string, extracted: string): boolean {
-  // Handle common OCR character substitutions
-  const ocrSubstitutions: { [key: string]: string[] } = {
-    'c': ['e', 'o', 'g'],
-    'e': ['c', 'o'],
-    'o': ['c', 'e', '0'],
-    'i': ['l', '1'],
-    'l': ['i', '1'],
-    'u': ['n', 'v'],
-    'n': ['u', 'v'],
-    'v': ['u', 'n'],
-    'q': ['g', 'o'],
-    'g': ['q', 'o'],
-    't': ['f', 'l'],
-    'f': ['t', 'l'],
-  };
-  
-  // If lengths are very different, likely not a match
-  if (Math.abs(expected.length - extracted.length) > 2) {
-    return false;
-  }
-  
-  // Check if extracted text could be expected text with OCR errors
-  let matchCount = 0;
-  const minLength = Math.min(expected.length, extracted.length);
-  
-  for (let i = 0; i < minLength; i++) {
-    const expectedChar = expected[i];
-    const extractedChar = extracted[i];
-    
-    if (expectedChar === extractedChar) {
-      matchCount++;
-    } else if (ocrSubstitutions[expectedChar]?.includes(extractedChar)) {
-      matchCount++;
-    }
-  }
-  
-  // If at least 70% of characters match (accounting for OCR errors), consider it a match
-  return matchCount / minLength >= 0.7;
-}
