@@ -73,5 +73,7 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
     } : undefined,
     governmentWarning,
     overallMatch,
+    extractedText: ocrResult.text,
+    ocrConfidence: ocrResult.confidence,
   };
 }

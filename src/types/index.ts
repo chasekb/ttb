@@ -41,6 +41,8 @@ export interface VerificationResult {
     text?: string;
   };
   overallMatch: boolean;
+  extractedText: string;
+  ocrConfidence: number;
 }
 
 export interface ProcessingError {

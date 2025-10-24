@@ -46,6 +46,27 @@ export default function ResultsDisplay({ result, onRetry }: ResultsDisplayProps)
         </p>
       </div>
 
+      {/* Extracted Text Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">Extracted Text</h3>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">OCR Confidence: {Math.round(result.ocrConfidence * 100)}%</span>
+            <button
+              onClick={() => navigator.clipboard.writeText(result.extractedText)}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Copy to Clipboard
+            </button>
+          </div>
+          <div className="bg-white border border-gray-200 rounded p-3 max-h-60 overflow-y-auto">
+            <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+              {result.extractedText || 'No text extracted from image'}
+            </pre>
+          </div>
+        </div>
+      </div>
+
       {/* Detailed Results */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-800">Verification Details</h3>
