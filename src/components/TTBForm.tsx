@@ -70,7 +70,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           id="brandName"
           value={formData.brandName}
           onChange={(e) => handleInputChange('brandName', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
             errors.brandName ? 'border-red-500' : 'border-gray-300'
           }`}
           placeholder="e.g., Old Tom Distillery"
@@ -89,13 +89,13 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           id="productClass"
           value={formData.productClass}
           onChange={(e) => handleInputChange('productClass', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
             errors.productClass ? 'border-red-500' : 'border-gray-300'
           }`}
           disabled={isLoading}
         >
           <option value="">Select product type</option>
-          <option value="Kentucky Straight Bourbon Whiskey">Kentucky Straight Bourbon Whiskey</option>
+          <option value="Bourbon Whiskey">Bourbon Whiskey</option>
           <option value="Vodka">Vodka</option>
           <option value="Gin">Gin</option>
           <option value="Rum">Rum</option>
@@ -122,7 +122,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
             id="alcoholContent"
             value={formData.alcoholContent || ''}
             onChange={(e) => handleInputChange('alcoholContent', e.target.value ? parseFloat(e.target.value) : undefined)}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
               errors.alcoholContent ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="45"
@@ -149,7 +149,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           id="netContents"
           value={formData.netContents || ''}
           onChange={(e) => handleInputChange('netContents', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           placeholder="e.g., 750 mL, 12 fl oz"
           disabled={isLoading}
         />
@@ -163,7 +163,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           id="ocrProvider"
           value={formData.ocrProvider || 'google-cloud-vision'}
           onChange={(e) => handleInputChange('ocrProvider', e.target.value as OCRProvider)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           disabled={isLoading}
         >
           <option value="tesseract">Tesseract (Local OCR)</option>
