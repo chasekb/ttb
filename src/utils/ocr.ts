@@ -5,7 +5,7 @@ import { OCRProviderFactory } from './ocrProviders';
 
 export async function extractTextFromImage(
   imageFile: File, 
-  provider: OCRProvider = 'tesseract'
+  provider: OCRProvider = 'google-cloud-vision'
 ): Promise<OCRResult | ProcessingError> {
   return OCRProviderFactory.extractTextFromImage(imageFile, provider);
 }

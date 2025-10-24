@@ -166,7 +166,7 @@ export class OCRProviderFactory {
 
   static async extractTextFromImage(
     imageFile: File, 
-    provider: OCRProvider = 'tesseract'
+    provider: OCRProvider = 'google-cloud-vision'
   ): Promise<OCRResult | ProcessingError> {
     const ocrProvider = this.getProvider(provider);
     return await ocrProvider.extractText(imageFile);
@@ -176,7 +176,7 @@ export class OCRProviderFactory {
 // Legacy function for backward compatibility
 export async function extractTextFromImage(
   imageFile: File, 
-  provider: OCRProvider = 'tesseract'
+  provider: OCRProvider = 'google-cloud-vision'
 ): Promise<OCRResult | ProcessingError> {
   return OCRProviderFactory.extractTextFromImage(imageFile, provider);
 }

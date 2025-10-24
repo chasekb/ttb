@@ -16,7 +16,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     productClass: '',
     alcoholContent: undefined,
     netContents: '',
-    ocrProvider: 'tesseract',
+    ocrProvider: 'google-cloud-vision',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -161,7 +161,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
         </label>
         <select
           id="ocrProvider"
-          value={formData.ocrProvider || 'tesseract'}
+          value={formData.ocrProvider || 'google-cloud-vision'}
           onChange={(e) => handleInputChange('ocrProvider', e.target.value as OCRProvider)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isLoading}

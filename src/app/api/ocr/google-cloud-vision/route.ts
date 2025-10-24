@@ -13,17 +13,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log environment variables (without exposing sensitive data)
-    console.log('Environment variables loaded:', {
-      GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID ? '***configured***' : 'NOT_SET',
-      GOOGLE_CLOUD_CLIENT_EMAIL: process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? '***configured***' : 'NOT_SET',
-      GOOGLE_CLOUD_PRIVATE_KEY: process.env.GOOGLE_CLOUD_PRIVATE_KEY ? '***configured***' : 'NOT_SET',
-      NODE_ENV: process.env.NODE_ENV,
-    });
-
     // Check for Google Cloud credentials
     if (!process.env.GOOGLE_CLOUD_PROJECT_ID || !process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
-      console.error('Missing required Google Cloud environment variables');
       return NextResponse.json(
         { error: 'Google Cloud Vision API credentials not configured' },
         { status: 500 }

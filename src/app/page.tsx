@@ -28,7 +28,7 @@ export default function Home() {
     
     try {
       // Extract text from image using selected OCR provider
-      const ocrResult = await extractTextFromImage(selectedImage, data.ocrProvider || 'tesseract');
+      const ocrResult = await extractTextFromImage(selectedImage, data.ocrProvider || 'google-cloud-vision');
       
       if (isOCRResult(ocrResult)) {
         // Verify the label against form data
