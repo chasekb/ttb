@@ -114,18 +114,34 @@ export default function ResultsDisplay({ result, onRetry }: ResultsDisplayProps)
       {!result.overallMatch && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h4 className="font-semibold text-red-800 mb-2">Issues Found:</h4>
-          <ul className="space-y-1 text-sm text-red-700">
+          <ul className="space-y-2 text-sm text-red-700">
             {!result.brandName.match && (
-              <li>• Brand name mismatch: Expected &quot;{result.brandName.expected}&quot;</li>
+              <li className="flex flex-col">
+                <span className="font-medium">• Brand name mismatch:</span>
+                <span className="ml-4">Expected: &quot;{result.brandName.expected}&quot;</span>
+                <span className="ml-4">Extracted: &quot;{result.brandName.extracted}&quot;</span>
+              </li>
             )}
             {!result.productClass.match && (
-              <li>• Product class mismatch: Expected &quot;{result.productClass.expected}&quot;</li>
+              <li className="flex flex-col">
+                <span className="font-medium">• Product class mismatch:</span>
+                <span className="ml-4">Expected: &quot;{result.productClass.expected}&quot;</span>
+                <span className="ml-4">Extracted: &quot;{result.productClass.extracted}&quot;</span>
+              </li>
             )}
             {result.alcoholContent && !result.alcoholContent.match && (
-              <li>• Alcohol content mismatch: Expected {result.alcoholContent.expected}%, found {result.alcoholContent.extracted}%</li>
+              <li className="flex flex-col">
+                <span className="font-medium">• Alcohol content mismatch:</span>
+                <span className="ml-4">Expected: {result.alcoholContent.expected}%</span>
+                <span className="ml-4">Extracted: {result.alcoholContent.extracted}%</span>
+              </li>
             )}
             {result.netContents && !result.netContents.match && (
-              <li>• Net contents mismatch: Expected &quot;{result.netContents.expected}&quot;</li>
+              <li className="flex flex-col">
+                <span className="font-medium">• Net contents mismatch:</span>
+                <span className="ml-4">Expected: &quot;{result.netContents.expected}&quot;</span>
+                <span className="ml-4">Extracted: &quot;{result.netContents.extracted}&quot;</span>
+              </li>
             )}
             {!result.governmentWarning.found && (
               <li>• Government warning text not found on label</li>
