@@ -109,25 +109,6 @@ export function extractBrandName(text: string): string | null {
            normalized.length > 50;
   };
   
-  // Look for known brand patterns first (more specific matching)
-  const knownBrandPatterns = [
-    /veuve\s+clicquot/gi,
-    /dom\s+pérignon/gi,
-    /moët\s+et\s+chandon/gi,
-    /krug/gi,
-    /taittinger/gi,
-    /pol\s+roger/gi,
-    /bollinger/gi,
-    /perrier\s+jouët/gi,
-  ];
-  
-  for (const pattern of knownBrandPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[0].trim();
-    }
-  }
-  
   // First, try to find multi-line brand names (like "Pabst Blue Ribbon")
   for (let i = 0; i < lines.length - 1; i++) {
     const currentLine = lines[i];
