@@ -27,8 +27,8 @@ export default function Home() {
     setIsProcessing(true);
     
     try {
-      // Extract text from image using OCR
-      const ocrResult = await extractTextFromImage(selectedImage);
+      // Extract text from image using selected OCR provider
+      const ocrResult = await extractTextFromImage(selectedImage, data.ocrProvider || 'tesseract');
       
       if (isOCRResult(ocrResult)) {
         // Verify the label against form data

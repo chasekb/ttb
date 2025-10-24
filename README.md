@@ -19,7 +19,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **TTB Form Interface** - Complete form with brand name, product class, alcohol content, and net contents
 - **Drag-and-Drop Image Upload** - Easy image upload with preview functionality
-- **OCR Text Extraction** - Client-side processing using Tesseract.js
+- **Dual OCR Support** - Choose between Tesseract.js (local) or Google Cloud Vision API
 - **Intelligent Verification** - Fuzzy matching with tolerance for OCR errors
 - **Detailed Results** - Comprehensive reporting with visual indicators
 - **Error Handling** - Graceful handling of invalid images and processing failures
@@ -28,7 +28,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **Frontend:** Next.js 16 with TypeScript
 - **Styling:** Tailwind CSS
-- **OCR:** Tesseract.js (client-side processing)
+- **OCR:** Tesseract.js (client-side) + Google Cloud Vision API (server-side)
 - **Deployment:** Vercel
 - **File Handling:** Next.js built-in image optimization
 
@@ -82,6 +82,7 @@ npm start
 - **Product Class/Type:** Select from dropdown (Bourbon, Vodka, IPA, etc.)
 - **Alcohol Content (ABV):** Enter percentage (0-100%)
 - **Net Contents:** Optional volume information (e.g., "750 mL", "12 fl oz")
+- **OCR Provider:** Choose between Tesseract (local) or Google Cloud Vision API
 
 ### Step 2: Upload Label Image
 - Drag and drop an image file or click to browse
@@ -202,7 +203,51 @@ The system uses intelligent text processing to handle OCR variations:
 
 ### Environment Variables
 
-No environment variables are required for basic functionality. The application uses client-side OCR processing.
+#### For Tesseract OCR (Default)
+No environment variables are required. Tesseract runs locally in the browser.
+
+#### For Google Cloud Vision API
+Create a `.env.local` file with your Google Cloud credentials:
+
+```bash
+# Google Cloud Project ID
+GOOGLE_CLOUD_PROJECT_ID=your-project-id
+
+# Google Cloud Service Account Email
+GOOGLE_CLOUD_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+
+# Google Cloud Private Key (replace \n with actual newlines)
+GOOGLE_CLOUD_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
+```
+
+#### Setting up Google Cloud Vision API
+
+1. **Go to Google Cloud Console**
+   - Visit [https://console.cloud.google.com/](https://console.cloud.google.com/)
+
+2. **Create or Select Project**
+   - Create a new project or select an existing one
+
+3. **Enable Vision API**
+   - Navigate to "APIs & Services" > "Library"
+   - Search for "Cloud Vision API" and enable it
+
+4. **Create Service Account**
+   - Go to "IAM & Admin" > "Service Accounts"
+   - Click "Create Service Account"
+   - Give it a name and description
+   - Grant "Cloud Vision API User" role
+
+5. **Download Credentials**
+   - Click on the service account
+   - Go to "Keys" tab
+   - Click "Add Key" > "Create new key" > "JSON"
+   - Download the JSON file
+
+6. **Extract Credentials**
+   - Open the downloaded JSON file
+   - Copy `project_id`, `client_email`, and `private_key`
+   - Add them to your `.env.local` file
 
 ## 🧪 Testing
 

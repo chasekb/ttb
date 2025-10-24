@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TTBFormData } from '@/types';
+import { TTBFormData, OCRProvider } from '@/types';
 
 interface TTBFormProps {
   onSubmit: (data: TTBFormData) => void;
@@ -16,6 +16,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     productClass: '',
     alcoholContent: undefined,
     netContents: '',
+    ocrProvider: 'tesseract',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,7 +47,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
     }
   };
 
-  const handleInputChange = (field: keyof TTBFormData, value: string | number | undefined) => {
+  const handleInputChange = (field: keyof TTBFormData, value: string | number | OCRProvider | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -152,6 +153,25 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           placeholder="e.g., 750 mL, 12 fl oz"
           disabled={isLoading}
         />
+      </div>
+
+      <div>
+        <label htmlFor="ocrProvider" className="block text-sm font-medium text-gray-700 mb-2">
+          OCR Provider
+        </label>
+        <select
+          id="ocrProvider"
+          value={formData.ocrProvider || 'tesseract'}
+          onChange={(e) => handleInputChange('ocrProvider', e.target.value as OCRProvider)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isLoading}
+        >
+          <option value="tesseract">Tesseract (Local OCR)</option>
+          <option value="google-cloud-vision">Google Cloud Vision API</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Tesseract runs locally in your browser. Google Cloud Vision API requires API credentials and runs on Google's servers.
+        </p>
       </div>
 
       <button

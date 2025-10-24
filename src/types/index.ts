@@ -1,10 +1,13 @@
 // TTB Label Verification System Types
 
+export type OCRProvider = 'tesseract' | 'google-cloud-vision';
+
 export interface TTBFormData {
   brandName: string;
   productClass: string;
   alcoholContent?: number;
   netContents?: string;
+  ocrProvider?: OCRProvider;
 }
 
 export interface OCRResult {
