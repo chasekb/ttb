@@ -50,6 +50,7 @@ export function extractVolume(text: string): string | null {
 
 export function checkGovernmentWarning(text: string): { found: boolean; text?: string } {
   const warningPatterns = [
+    // US Government warnings
     /government\s*warning/gi,
     /pregnant\s*women/gi,
     /driving\s*under\s*the\s*influence/gi,
@@ -71,6 +72,17 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
     /consommer\s*avec\s*modération/gi,
     /interdit\s*aux\s*moins\s*de\s*18\s*ans/gi,
     /déconseillé\s*aux\s*femmes\s*enceintes/gi,
+    /l'abus\s*d'alcool\s*est\s*dangereux/gi,
+    /à\s*consommer\s*avec\s*modération/gi,
+    /interdit\s*aux\s*moins\s*de\s*dix-huit\s*ans/gi,
+    /déconseillé\s*aux\s*femmes\s*enceintes/gi,
+    // Additional European patterns
+    /excessive\s*consumption/gi,
+    /harmful\s*to\s*health/gi,
+    /drink\s*in\s*moderation/gi,
+    /not\s*for\s*children/gi,
+    /18\+/gi,
+    /21\+/gi,
   ];
 
   for (const pattern of warningPatterns) {
@@ -99,6 +111,9 @@ export function extractBrandName(text: string): string | null {
     /^\d+\s*(ml|oz|fl\.?oz)$/i,
     // French wine-specific regulatory text
     /^\d{4}$/, // Years like "1772"
+    // OCR artifacts and corrupted text
+    /^[a-z]{1,3}$/i, // Very short words that are likely OCR errors
+    /^[a-z]{1,2}\s+[a-z]{1,2}$/i, // Two very short words (like "ye Chey")
   ];
   
   // Helper function to check if text matches non-brand patterns
@@ -191,6 +206,11 @@ export function fuzzyMatch(expected: string, extracted: string): boolean {
     return true;
   }
   
+  // For brand names, handle OCR errors by checking character similarity
+  if (isBrandNameMatch(normalizedExpected, normalizedExtracted)) {
+    return true;
+  }
+  
   // For product classes, check if key terms match
   // This handles cases like "Bourbon Whiskey" vs "Kentucky Straight Bourbon Whiskey"
   const expectedWords = normalizeTextForWords(expected).split(/\s+/).filter(word => word.length > 2);
@@ -214,6 +234,47 @@ export function fuzzyMatch(expected: string, extracted: string): boolean {
     return true;
   }
   
-  // Simple similarity check (for future enhancement)
   return false;
+}
+
+// Helper function to handle OCR errors in brand names
+function isBrandNameMatch(expected: string, extracted: string): boolean {
+  // Handle common OCR character substitutions
+  const ocrSubstitutions: { [key: string]: string[] } = {
+    'c': ['e', 'o', 'g'],
+    'e': ['c', 'o'],
+    'o': ['c', 'e', '0'],
+    'i': ['l', '1'],
+    'l': ['i', '1'],
+    'u': ['n', 'v'],
+    'n': ['u', 'v'],
+    'v': ['u', 'n'],
+    'q': ['g', 'o'],
+    'g': ['q', 'o'],
+    't': ['f', 'l'],
+    'f': ['t', 'l'],
+  };
+  
+  // If lengths are very different, likely not a match
+  if (Math.abs(expected.length - extracted.length) > 2) {
+    return false;
+  }
+  
+  // Check if extracted text could be expected text with OCR errors
+  let matchCount = 0;
+  const minLength = Math.min(expected.length, extracted.length);
+  
+  for (let i = 0; i < minLength; i++) {
+    const expectedChar = expected[i];
+    const extractedChar = extracted[i];
+    
+    if (expectedChar === extractedChar) {
+      matchCount++;
+    } else if (ocrSubstitutions[expectedChar]?.includes(extractedChar)) {
+      matchCount++;
+    }
+  }
+  
+  // If at least 70% of characters match (accounting for OCR errors), consider it a match
+  return matchCount / minLength >= 0.7;
 }
