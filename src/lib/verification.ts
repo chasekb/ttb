@@ -14,30 +14,26 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
   const extractedText = ocrResult.text;
   
   // Extract brand name from OCR text
-  const extractedBrandName = extractBrandName(extractedText);
-  const brandNameMatch = extractedBrandName !== null && 
-    fuzzyMatch(formData.brandName, extractedBrandName);
+  const extractedBrandName = extractBrandName(extractedText, formData.brandName);
+  const brandNameMatch = extractedBrandName !== null;
   
   // Extract product class from OCR text
-  const extractedProductClass = extractProductClass(extractedText);
-  const productClassMatch = extractedProductClass !== null && 
-    fuzzyMatch(formData.productClass, extractedProductClass);
+  const extractedProductClass = extractProductClass(extractedText, formData.productClass);
+  const productClassMatch = extractedProductClass !== null;
   
   // Extract alcohol content (if provided in form)
-  const extractedAlcohol = extractAlcoholPercentage(extractedText);
+  const extractedAlcohol = extractAlcoholPercentage(extractedText, formData.alcoholContent);
   let alcoholContentMatch = true;
   if (formData.alcoholContent !== undefined) {
-    alcoholContentMatch = extractedAlcohol !== null && 
-      Math.abs(extractedAlcohol - formData.alcoholContent) <= 0.1;
+    alcoholContentMatch = extractedAlcohol !== null;
   }
   
   // Extract net contents (if provided)
   let netContentsMatch = true;
   let extractedNetContents: string | null = null;
   if (formData.netContents) {
-    extractedNetContents = extractVolume(extractedText);
-    netContentsMatch = extractedNetContents !== null && 
-      fuzzyMatch(formData.netContents, extractedNetContents);
+    extractedNetContents = extractVolume(extractedText, formData.netContents);
+    netContentsMatch = extractedNetContents !== null;
   }
   
   // Check for government warning

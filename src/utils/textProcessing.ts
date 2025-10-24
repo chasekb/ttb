@@ -8,40 +8,57 @@ export function normalizeTextForWords(text: string): string {
   return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
 }
 
-export function extractAlcoholPercentage(text: string): number | null {
-  // Look for patterns like "45%", "45% ABV", "45% alc/vol", etc.
-  const patterns = [
-    /(\d+(?:\.\d+)?)\s*%/,
-    /(\d+(?:\.\d+)?)\s*abv/i,
-    /(\d+(?:\.\d+)?)\s*alc\/vol/i,
-    /alcohol\s*by\s*volume[:\s]*(\d+(?:\.\d+)?)/i,
-  ];
+export function extractAlcoholPercentage(text: string, expectedAlcohol?: number): number | null {
+  // If we have an expected alcohol percentage, search for it directly in the text
+  if (expectedAlcohol !== undefined) {
+    const alcoholPatterns = [
+      /(\d+(?:\.\d+)?)\s*%/i,
+      /(\d+(?:\.\d+)?)\s*abv/i,
+      /(\d+(?:\.\d+)?)\s*alc\/vol/i,
+      /alcohol\s*by\s*volume[:\s]*(\d+(?:\.\d+)?)/i,
+      /alc\.?\s*(\d+(?:\.\d+)?)\s*%/i,
+    ];
 
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const percentage = parseFloat(match[1]);
-      if (percentage >= 0 && percentage <= 100) {
-        return percentage;
+    for (const pattern of alcoholPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const percentage = parseFloat(match[1]);
+        if (percentage >= 0 && percentage <= 100) {
+          // Check if this matches the expected value (within 0.1% tolerance)
+          if (Math.abs(percentage - expectedAlcohol) <= 0.1) {
+            return percentage;
+          }
+        }
       }
     }
+    
+    // If no exact match found, return null (indicating mismatch)
+    return null;
   }
-
-  return null;
 }
 
-export function extractVolume(text: string): string | null {
-  // Look for volume patterns like "750 mL", "12 fl oz", "1.75 L", etc.
-  const patterns = [
-    /(\d+(?:\.\d+)?)\s*(ml|milliliter|milliliters)/gi,
-    /(\d+(?:\.\d+)?)\s*(fl\s*oz|fluid\s*ounce|fluid\s*ounces)/gi,
-    /(\d+(?:\.\d+)?)\s*(l|liter|liters)/gi,
-  ];
-
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[0].trim();
+export function extractVolume(text: string, expectedVolume?: string): string | null {
+  // If we have an expected volume, search for it directly in the text
+  if (expectedVolume) {
+    const normalizedText = normalizeText(text);
+    const normalizedExpected = normalizeText(expectedVolume);
+    
+    // Direct match
+    if (normalizedText.includes(normalizedExpected)) {
+      return expectedVolume;
+    }
+    
+    // Try fuzzy matching for OCR errors
+    const words = normalizedText.split(/\s+/);
+    const expectedWords = normalizedExpected.split(/\s+/);
+    
+    // Check if all expected words are present (with fuzzy matching)
+    const allWordsFound = expectedWords.every(expectedWord => 
+      words.some(word => isBrandNameMatch(expectedWord, word))
+    );
+    
+    if (allWordsFound) {
+      return expectedVolume;
     }
   }
 
@@ -95,95 +112,60 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
   return { found: false };
 }
 
-export function extractBrandName(text: string): string | null {
-  // Look for brand name patterns - typically appears prominently
-  // Common patterns: "Brand Name", "BRAND NAME", "Brand Name Distillery", etc.
-  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  
-  // Define patterns that indicate non-brand text
-  const nonBrandPatterns = [
-    // Regulatory and warning text
-    /government|warning|alcohol|volume|ml|oz|appellation|origine|controlee|vcp|brut|reims|france|produit|elabore|alc|by\s*volume|product\s*of/i,
-    // Descriptive marketing text
-    /established|nature|choicest|products|provide|prized|flavor|finest|hops|grains|selected|americas|best|maison|fondée/i,
-    // Pure numbers and measurements
-    /^\d+$/,
-    /^\d+\s*(ml|oz|fl\.?oz)$/i,
-    // French wine-specific regulatory text
-    /^\d{4}$/, // Years like "1772"
-    // OCR artifacts and corrupted text
-    /^[a-z]{1,3}$/i, // Very short words that are likely OCR errors
-    /^[a-z]{1,2}\s+[a-z]{1,2}$/i, // Two very short words (like "ye Chey")
-  ];
-  
-  // Helper function to check if text matches non-brand patterns
-  const isNonBrandText = (text: string): boolean => {
-    const normalized = normalizeText(text);
-    return nonBrandPatterns.some(pattern => pattern.test(normalized)) ||
-           normalized.length < 3 ||
-           normalized.length > 50;
-  };
-  
-  // First, try to find multi-line brand names (like "Pabst Blue Ribbon")
-  for (let i = 0; i < lines.length - 1; i++) {
-    const currentLine = lines[i];
-    const nextLine = lines[i + 1];
+export function extractBrandName(text: string, expectedBrandName?: string): string | null {
+  // If we have an expected brand name, search for it directly in the text
+  if (expectedBrandName) {
+    const normalizedText = normalizeText(text);
+    const normalizedExpected = normalizeText(expectedBrandName);
     
-    // Skip if current line is clearly not a brand name
-    if (isNonBrandText(currentLine)) {
-      continue;
+    // Direct match
+    if (normalizedText.includes(normalizedExpected)) {
+      return expectedBrandName;
     }
     
-    // Check if next line is also a brand name component
-    if (!isNonBrandText(nextLine) && 
-        normalizeText(nextLine).length > 2 && 
-        normalizeText(nextLine).length < 30) {
-      return `${currentLine} ${nextLine}`.trim();
+    // Try fuzzy matching for OCR errors
+    const words = normalizedText.split(/\s+/);
+    const expectedWords = normalizedExpected.split(/\s+/);
+    
+    // Check if all expected words are present (with fuzzy matching)
+    const allWordsFound = expectedWords.every(expectedWord => 
+      words.some(word => isBrandNameMatch(expectedWord, word))
+    );
+    
+    if (allWordsFound) {
+      return expectedBrandName;
     }
   }
   
-  // Fallback to single-line brand names
-  for (const line of lines) {
-    if (!isNonBrandText(line)) {
-      return line.trim();
-    }
-  }
   
   return null;
 }
 
-export function extractProductClass(text: string): string | null {
-  // Look for product class patterns - use word boundaries to avoid partial matches
-  const productClassPatterns = [
-    /\b(kentucky\s+straight\s+bourbon\s+whiskey)\b/gi,
-    /\b(bourbon\s+whiskey)\b/gi,
-    /\b(straight\s+bourbon)\b/gi,
-    /\b(bourbon)\b/gi,
-    /\b(vodka)\b/gi,
-    /\b(gin)\b/gi,
-    /\b(rum)\b/gi,
-    /\b(tequila)\b/gi,
-    /\b(scotch\s+whisky)\b/gi,
-    /\b(scotch)\b/gi,
-    /\b(whiskey)\b/gi,
-    /\b(whisky)\b/gi,
-    /\b(ipa)\b/gi,
-    /\b(lager)\b/gi,
-    /\b(ale)\b/gi,
-    /\b(beer)\b/gi,
-    /\b(wine)\b/gi,
-    /\b(champagne)\b/gi,
-    /\b(brandy)\b/gi,
-    /\b(cognac)\b/gi,
-  ];
-
-  for (const pattern of productClassPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[1] || match[0];
+export function extractProductClass(text: string, expectedProductClass?: string): string | null {
+  // If we have an expected product class, search for it directly in the text
+  if (expectedProductClass) {
+    const normalizedText = normalizeText(text);
+    const normalizedExpected = normalizeText(expectedProductClass);
+    
+    // Direct match
+    if (normalizedText.includes(normalizedExpected)) {
+      return expectedProductClass;
+    }
+    
+    // Try fuzzy matching for OCR errors
+    const words = normalizedText.split(/\s+/);
+    const expectedWords = normalizedExpected.split(/\s+/);
+    
+    // Check if all expected words are present (with fuzzy matching)
+    const allWordsFound = expectedWords.every(expectedWord => 
+      words.some(word => isBrandNameMatch(expectedWord, word))
+    );
+    
+    if (allWordsFound) {
+      return expectedProductClass;
     }
   }
-
+  
   return null;
 }
 
