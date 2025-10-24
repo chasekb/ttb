@@ -170,7 +170,7 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           <option value="google-cloud-vision">Google Cloud Vision API</option>
         </select>
         <p className="mt-1 text-xs text-gray-500">
-          Tesseract runs locally in your browser. Google Cloud Vision API requires API credentials and runs on Google's servers.
+          Tesseract runs locally in your browser. Google Cloud Vision API requires API credentials and runs on Google&apos;s servers.
         </p>
       </div>
 

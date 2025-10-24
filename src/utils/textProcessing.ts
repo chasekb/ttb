@@ -4,6 +4,10 @@ export function normalizeText(text: string): string {
   return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
 }
 
+export function normalizeTextForWords(text: string): string {
+  return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
+}
+
 export function extractAlcoholPercentage(text: string): number | null {
   // Look for patterns like "45%", "45% ABV", "45% alc/vol", etc.
   const patterns = [
@@ -142,6 +146,20 @@ export function fuzzyMatch(expected: string, extracted: string): boolean {
   
   // Check if expected text contains extracted text
   if (normalizedExpected.includes(normalizedExtracted)) {
+    return true;
+  }
+  
+  // For product classes, check if key terms match
+  // This handles cases like "Bourbon Whiskey" vs "Kentucky Straight Bourbon Whiskey"
+  const expectedWords = normalizeTextForWords(expected).split(/\s+/).filter(word => word.length > 2);
+  const extractedWords = normalizeTextForWords(extracted).split(/\s+/).filter(word => word.length > 2);
+  
+  // Check if all significant words from expected are present in extracted
+  const allExpectedWordsFound = expectedWords.every(expectedWord => 
+    extractedWords.some(extractedWord => extractedWord.includes(expectedWord))
+  );
+  
+  if (allExpectedWordsFound) {
     return true;
   }
   
