@@ -95,16 +95,26 @@ export default function TTBForm({ onSubmit, isLoading = false }: TTBFormProps) {
           disabled={isLoading}
         >
           <option value="">Select product type</option>
+          <option value="Kentucky Straight Bourbon Whiskey">Kentucky Straight Bourbon Whiskey</option>
           <option value="Bourbon Whiskey">Bourbon Whiskey</option>
+          <option value="Straight Bourbon">Straight Bourbon</option>
+          <option value="Bourbon">Bourbon</option>
           <option value="Vodka">Vodka</option>
           <option value="Gin">Gin</option>
           <option value="Rum">Rum</option>
           <option value="Tequila">Tequila</option>
           <option value="Scotch Whisky">Scotch Whisky</option>
+          <option value="Scotch">Scotch</option>
+          <option value="Whiskey">Whiskey</option>
+          <option value="Whisky">Whisky</option>
           <option value="IPA">IPA</option>
           <option value="Lager">Lager</option>
           <option value="Ale">Ale</option>
+          <option value="Beer">Beer</option>
           <option value="Wine">Wine</option>
+          <option value="Champagne">Champagne</option>
+          <option value="Brandy">Brandy</option>
+          <option value="Cognac">Cognac</option>
           <option value="Other">Other</option>
         </select>
         {errors.productClass && (
