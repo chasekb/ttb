@@ -46,8 +46,9 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
       return expectedVolume;
     }
     
-    // Try to find volume patterns in the text
+    // Try to find volume patterns in the text - handle multi-line text
     const volumePatterns = [
+      // Standard patterns with spaces
       /(\d+(?:\.\d+)?)\s*cl/i,
       /(\d+(?:\.\d+)?)\s*ml/i,
       /(\d+(?:\.\d+)?)\s*liter/i,
@@ -55,12 +56,20 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
       /(\d+(?:\.\d+)?)\s*ounce/i,
       /(\d+(?:\.\d+)?)\s*oz/i,
       /(\d+(?:\.\d+)?)\s*fl\s*oz/i,
+      // Patterns with dots and special characters
+      /(\d+(?:\.\d+)?)\s*fl\.?\s*oz/i,
+      /(\d+(?:\.\d+)?)\s*fl\.oz/i,
+      // Multi-line patterns (number on one line, unit on another)
+      /(\d+(?:\.\d+)?)\s*\n\s*fl\.?\s*oz/i,
+      /(\d+(?:\.\d+)?)\s*\n\s*oz/i,
+      /(\d+(?:\.\d+)?)\s*\n\s*ml/i,
+      /(\d+(?:\.\d+)?)\s*\n\s*cl/i,
     ];
     
     for (const pattern of volumePatterns) {
       const match = text.match(pattern);
       if (match) {
-        const foundVolume = match[0];
+        const foundVolume = match[0].replace(/\n/g, ' ').trim();
         const normalizedFound = normalizeText(foundVolume);
         const normalizedExpected = normalizeText(expectedVolume);
         
@@ -79,6 +88,52 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
           
           if (foundNumber === expectedNumber) {
             return foundVolume;
+          }
+        }
+      }
+    }
+    
+    // Additional fallback: look for number and unit separately in nearby lines
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      const numberMatch = line.match(/(\d+(?:\.\d+)?)/);
+      
+      if (numberMatch) {
+        const number = numberMatch[1];
+        const expectedNumberMatch = expectedVolume.match(/(\d+(?:\.\d+)?)/);
+        
+        if (expectedNumberMatch && number === expectedNumberMatch[1]) {
+          // Check current line and nearby lines for volume units
+          const searchLines = [
+            lines[i], // current line
+            lines[i - 1], // previous line
+            lines[i + 1], // next line
+          ].filter(Boolean);
+          
+          const searchText = searchLines.join(' ');
+          const unitPatterns = [
+            /fl\.?\s*oz/i,
+            /oz/i,
+            /ml/i,
+            /cl/i,
+            /liter/i,
+            /l\b/i,
+          ];
+          
+          for (const unitPattern of unitPatterns) {
+            if (unitPattern.test(searchText)) {
+              const unitMatch = searchText.match(unitPattern);
+              if (unitMatch) {
+                const foundVolume = `${number} ${unitMatch[0]}`;
+                const normalizedFound = normalizeText(foundVolume);
+                const normalizedExpected = normalizeText(expectedVolume);
+                
+                if (normalizedFound.includes(normalizedExpected) || normalizedExpected.includes(normalizedFound)) {
+                  return foundVolume;
+                }
+              }
+            }
           }
         }
       }
@@ -107,6 +162,13 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
     /warning.*pregnant/gi,
     /warning.*driving/gi,
     /warning.*health/gi,
+    // Partial/truncated warnings that might appear in OCR
+    /pregnant/gi,
+    /driving/gi,
+    /health/gi,
+    /warning/gi,
+    /minors/gi,
+    /responsibly/gi,
     // French/European warnings
     /abus\s*dangereux/gi,
     /consommer\s*avec\s*modération/gi,
