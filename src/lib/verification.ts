@@ -41,12 +41,11 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
   // Determine if this is an imported product (may not have US government warnings)
   const isImportedProduct = /france|french|imported|import|product\s*of\s*france|produit\s*de\s*france|reims|appellation|origine|controlee/i.test(extractedText);
   
-  // Determine overall match - government warning is optional for imported products
+  // Determine overall match - government warning is optional
   const overallMatch = brandNameMatch && 
     productClassMatch && 
     alcoholContentMatch && 
-    netContentsMatch && 
-    (governmentWarning.found || isImportedProduct);
+    netContentsMatch;
   
   return {
     brandName: {

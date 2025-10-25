@@ -78,10 +78,28 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
 }
 
 export function checkGovernmentWarning(text: string): { found: boolean; text?: string } {
-  // Direct search for "government warning" only
-  const match = text.match(/government\s*warning/gi);
-  if (match) {
-    return { found: true, text: match[0] };
+  // Search for various government warning patterns
+  const warningPatterns = [
+    /government\s*warning/gi,
+    /meminum\s*arak\s*boleh\s*membahayakan\s*kesihatan/gi, // Malaysian warning
+    /consumir\s*con\s*moderaci[oó]n/gi, // Spanish warning
+    /consommer\s*avec\s*mod[eé]ration/gi, // French warning
+    /beh[öo]rdenwarnung/gi, // German warning
+    /avvertimento\s*governativo/gi, // Italian warning
+    /alcohol\s*can\s*cause\s*health\s*problems/gi,
+    /drink\s*responsibly/gi,
+    /please\s*drink\s*responsibly/gi,
+    /excessive\s*consumption/gi,
+    /health\s*warning/gi,
+    /warning.*health/gi,
+    /consume\s*responsibly/gi,
+  ];
+
+  for (const pattern of warningPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return { found: true, text: match[0] };
+    }
   }
 
   return { found: false };
