@@ -26,11 +26,11 @@ class TesseractProvider implements OCRProviderInterface {
         };
       }
 
-      // Validate file size (max 10MB)
-      if (imageFile.size > 10 * 1024 * 1024) {
+      // Validate file size (Tesseract.js has no inherent limit, but we'll set a reasonable 50MB limit for client-side processing)
+      if (imageFile.size > 50 * 1024 * 1024) {
         return {
           type: 'INVALID_IMAGE',
-          message: 'Image file is too large. Please upload an image smaller than 10MB.',
+          message: 'Image file is too large. Please upload an image smaller than 50MB.',
         };
       }
 
@@ -76,11 +76,11 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
         };
       }
 
-      // Validate file size (max 10MB)
-      if (imageFile.size > 10 * 1024 * 1024) {
+      // Validate file size (Google Cloud Vision API supports up to 20MB per image)
+      if (imageFile.size > 20 * 1024 * 1024) {
         return {
           type: 'INVALID_IMAGE',
-          message: 'Image file is too large. Please upload an image smaller than 10MB.',
+          message: 'Image file is too large. Please upload an image smaller than 20MB.',
         };
       }
 
