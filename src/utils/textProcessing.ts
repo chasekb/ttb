@@ -78,82 +78,10 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
 }
 
 export function checkGovernmentWarning(text: string): { found: boolean; text?: string } {
-  const warningPatterns = [
-    // US Government warnings
-    /government\s*warning/gi,
-    /pregnant\s*women/gi,
-    /driving\s*under\s*the\s*influence/gi,
-    /health\s*risks/gi,
-    /may\s*cause\s*birth\s*defects/gi,
-    /impair\s*ability/gi,
-    /operate\s*machinery/gi,
-    /may\s*cause\s*health\s*problems/gi,
-    /alcohol\s*abuse\s*is\s*dangerous/gi,
-    /drink\s*responsibly/gi,
-    /not\s*for\s*sale\s*to\s*minors/gi,
-    /under\s*21/gi,
-    /age\s*21/gi,
-    /warning.*pregnant/gi,
-    /warning.*driving/gi,
-    /warning.*health/gi,
-    // Partial/truncated warnings that might appear in OCR
-    /pregnant/gi,
-    /driving/gi,
-    /health/gi,
-    /warning/gi,
-    /minors/gi,
-    /responsibly/gi,
-    // French/European warnings
-    /abus\s*dangereux/gi,
-    /consommer\s*avec\s*modération/gi,
-    /interdit\s*aux\s*moins\s*de\s*18\s*ans/gi,
-    /déconseillé\s*aux\s*femmes\s*enceintes/gi,
-    /l'abus\s*d'alcool\s*est\s*dangereux/gi,
-    /à\s*consommer\s*avec\s*modération/gi,
-    /interdit\s*aux\s*moins\s*de\s*dix-huit\s*ans/gi,
-    /déconseillé\s*aux\s*femmes\s*enceintes/gi,
-    // Additional European patterns
-    /excessive\s*consumption/gi,
-    /harmful\s*to\s*health/gi,
-    /drink\s*in\s*moderation/gi,
-    /not\s*for\s*children/gi,
-    /18\+/gi,
-    /21\+/gi,
-    // Malay/Indonesian warnings (for Jack Daniels and other international products)
-    /meminum\s*arak\s*boleh\s*membahayakan\s*kesihatan/gi,
-    /meminum\s*arak/gi,
-    /membahayakan\s*kesihatan/gi,
-    /bahaya\s*untuk\s*kesehatan/gi,
-    /minuman\s*beralkohol/gi,
-    // Spanish warnings
-    /consumir\s*con\s*moderación/gi,
-    /abuso\s*peligroso/gi,
-    /prohibido\s*menores/gi,
-    /embarazadas/gi,
-    // German warnings
-    /alkoholmissbrauch\s*gefährlich/gi,
-    /mit\s*maß\s*genießen/gi,
-    /schwangeren\s*frauen/gi,
-    // Italian warnings
-    /abuso\s*pericoloso/gi,
-    /consumare\s*con\s*moderazione/gi,
-    /donne\s*incinte/gi,
-    // Portuguese warnings
-    /abuso\s*perigoso/gi,
-    /consumir\s*com\s*moderação/gi,
-    /mulheres\s*grávidas/gi,
-    // Generic international patterns
-    /health\s*warning/gi,
-    /alcohol\s*warning/gi,
-    /drinking\s*warning/gi,
-    /consumption\s*warning/gi,
-  ];
-
-  for (const pattern of warningPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return { found: true, text: match[0] };
-    }
+  // Direct search for "government warning" only
+  const match = text.match(/government\s*warning/gi);
+  if (match) {
+    return { found: true, text: match[0] };
   }
 
   return { found: false };
