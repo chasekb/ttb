@@ -172,15 +172,3 @@ export class OCRProviderFactory {
     return await ocrProvider.extractText(imageFile);
   }
 }
-
-// Legacy function for backward compatibility
-export async function extractTextFromImage(
-  imageFile: File, 
-  provider: OCRProvider = 'google-cloud-vision'
-): Promise<OCRResult | ProcessingError> {
-  return OCRProviderFactory.extractTextFromImage(imageFile, provider);
-}
-
-export function isOCRResult(result: OCRResult | ProcessingError): result is OCRResult {
-  return 'text' in result && 'confidence' in result;
-}
