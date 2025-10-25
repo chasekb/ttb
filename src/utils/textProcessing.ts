@@ -62,7 +62,7 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
       const searchText = searchRange.join(' ').toLowerCase();
       
       // Common volume units
-      const units = ['floz', 'floz', 'oz', 'ml', 'cl', 'liter', 'l'];
+      const units = ['floz', 'oz', 'ml', 'cl', 'liter', 'l'];
       
       for (const unit of units) {
         if (searchText.includes(unit)) {
