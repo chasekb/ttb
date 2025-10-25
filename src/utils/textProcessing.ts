@@ -36,110 +36,44 @@ export function extractAlcoholPercentage(text: string, expectedAlcohol?: number)
 }
 
 export function extractVolume(text: string, expectedVolume?: string): string | null {
-  // If we have an expected volume, search for it directly in the text
-  if (expectedVolume) {
-    const normalizedText = normalizeText(text);
-    const normalizedExpected = normalizeText(expectedVolume);
-    
-    // Direct match
-    if (normalizedText.includes(normalizedExpected)) {
-      return expectedVolume;
-    }
-    
-    // Try to find volume patterns in the text - handle multi-line text
-    const volumePatterns = [
-      // Standard patterns with spaces
-      /(\d+(?:\.\d+)?)\s*cl/i,
-      /(\d+(?:\.\d+)?)\s*ml/i,
-      /(\d+(?:\.\d+)?)\s*liter/i,
-      /(\d+(?:\.\d+)?)\s*l/i,
-      /(\d+(?:\.\d+)?)\s*ounce/i,
-      /(\d+(?:\.\d+)?)\s*oz/i,
-      /(\d+(?:\.\d+)?)\s*fl\s*oz/i,
-      // Patterns with dots and special characters
-      /(\d+(?:\.\d+)?)\s*fl\.?\s*oz/i,
-      /(\d+(?:\.\d+)?)\s*fl\.oz/i,
-      // Multi-line patterns (number on one line, unit on another)
-      /(\d+(?:\.\d+)?)\s*\n\s*fl\.?\s*oz/i,
-      /(\d+(?:\.\d+)?)\s*\n\s*oz/i,
-      /(\d+(?:\.\d+)?)\s*\n\s*ml/i,
-      /(\d+(?:\.\d+)?)\s*\n\s*cl/i,
-    ];
-    
-    for (const pattern of volumePatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        const foundVolume = match[0].replace(/\n/g, ' ').trim();
-        const normalizedFound = normalizeText(foundVolume);
-        const normalizedExpected = normalizeText(expectedVolume);
-        
-        // Check if the found volume matches the expected volume
-        if (normalizedFound.includes(normalizedExpected) || normalizedExpected.includes(normalizedFound)) {
-          return foundVolume;
-        }
-        
-        // Also check if the numeric part matches (e.g., "70cl" matches "70 cl")
-        const numericMatch = foundVolume.match(/(\d+(?:\.\d+)?)/);
-        const expectedNumericMatch = expectedVolume.match(/(\d+(?:\.\d+)?)/);
-        
-        if (numericMatch && expectedNumericMatch) {
-          const foundNumber = numericMatch[1];
-          const expectedNumber = expectedNumericMatch[1];
-          
-          if (foundNumber === expectedNumber) {
-            return foundVolume;
-          }
-        }
-      }
-    }
-    
-    // Additional fallback: look for number and unit separately in nearby lines
-    const lines = text.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      const numberMatch = line.match(/(\d+(?:\.\d+)?)/);
+  if (!expectedVolume) return null;
+  
+  // Normalize text for comparison (remove spaces, newlines, punctuation)
+  const normalizeForSearch = (str: string) => str.toLowerCase().replace(/[\s\n\.]/g, '');
+  
+  const normalizedText = normalizeForSearch(text);
+  const normalizedExpected = normalizeForSearch(expectedVolume);
+  
+  // Direct match first
+  if (normalizedText.includes(normalizedExpected)) {
+    return expectedVolume;
+  }
+  
+  // Extract number from expected volume
+  const expectedNumber = expectedVolume.match(/(\d+(?:\.\d+)?)/)?.[1];
+  if (!expectedNumber) return null;
+  
+  // Look for the number in the text, then check nearby text for volume units
+  const lines = text.split(/\s+/); // Split by any whitespace
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes(expectedNumber)) {
+      // Check current and nearby lines for volume units
+      const searchRange = lines.slice(Math.max(0, i - 2), i + 3);
+      const searchText = searchRange.join(' ').toLowerCase();
       
-      if (numberMatch) {
-        const number = numberMatch[1];
-        const expectedNumberMatch = expectedVolume.match(/(\d+(?:\.\d+)?)/);
-        
-        if (expectedNumberMatch && number === expectedNumberMatch[1]) {
-          // Check current line and nearby lines for volume units
-          const searchLines = [
-            lines[i], // current line
-            lines[i - 1], // previous line
-            lines[i + 1], // next line
-          ].filter(Boolean);
-          
-          const searchText = searchLines.join(' ');
-          const unitPatterns = [
-            /fl\.?\s*oz/i,
-            /oz/i,
-            /ml/i,
-            /cl/i,
-            /liter/i,
-            /l\b/i,
-          ];
-          
-          for (const unitPattern of unitPatterns) {
-            if (unitPattern.test(searchText)) {
-              const unitMatch = searchText.match(unitPattern);
-              if (unitMatch) {
-                const foundVolume = `${number} ${unitMatch[0]}`;
-                const normalizedFound = normalizeText(foundVolume);
-                const normalizedExpected = normalizeText(expectedVolume);
-                
-                if (normalizedFound.includes(normalizedExpected) || normalizedExpected.includes(normalizedFound)) {
-                  return foundVolume;
-                }
-              }
-            }
-          }
+      // Common volume units
+      const units = ['floz', 'floz', 'oz', 'ml', 'cl', 'liter', 'l'];
+      
+      for (const unit of units) {
+        if (searchText.includes(unit)) {
+          // Found number + unit combination
+          const foundVolume = `${expectedNumber} ${unit.replace('floz', 'fl oz')}`;
+          return foundVolume;
         }
       }
     }
   }
-
+  
   return null;
 }
 
