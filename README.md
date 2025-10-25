@@ -4,7 +4,7 @@ A web application that simulates TTB (Alcohol and Tobacco Tax and Trade Bureau) 
 
 ## 🚀 Live Demo
 
-**Production URL:** https://ttb-1jzsdkvon-chasekbs-projects.vercel.app
+**Production URL:** https://ttb-pied.vercel.app/
 
 ## 📋 Overview
 
@@ -19,7 +19,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **TTB Form Interface** - Complete form with brand name, product class, alcohol content, and net contents
 - **Drag-and-Drop Image Upload** - Easy image upload with preview functionality
-- **Dual OCR Support** - Choose between Tesseract.js (local) or Google Cloud Vision API
+- **Dual OCR Support** - Choose between Tesseract.js (client-side) or Google Cloud Vision API (server-side)
 - **Intelligent Verification** - Fuzzy matching with tolerance for OCR errors
 - **Detailed Results** - Comprehensive reporting with visual indicators
 - **Error Handling** - Graceful handling of invalid images and processing failures
@@ -28,7 +28,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **Frontend:** Next.js 16 with TypeScript
 - **Styling:** Tailwind CSS
-- **OCR:** Tesseract.js (client-side) + Google Cloud Vision API (server-side)
+- **OCR:** Dual provider support - Tesseract.js (client-side) + Google Cloud Vision API (server-side)
 - **Deployment:** Vercel
 - **File Handling:** Next.js built-in image optimization
 
@@ -82,7 +82,7 @@ npm start
 - **Product Class/Type:** Select from dropdown (Bourbon, Vodka, IPA, etc.)
 - **Alcohol Content (ABV):** Enter percentage (0-100%)
 - **Net Contents:** Optional volume information (e.g., "750 mL", "12 fl oz")
-- **OCR Provider:** Choose between Tesseract (local) or Google Cloud Vision API
+- **OCR Provider:** Choose between Tesseract.js (client-side) or Google Cloud Vision API (server-side)
 
 ### Step 2: Upload Label Image
 - Drag and drop an image file or click to browse
@@ -203,8 +203,8 @@ The system uses intelligent text processing to handle OCR variations:
 
 ### Environment Variables
 
-#### For Tesseract OCR (Default)
-No environment variables are required. Tesseract runs locally in the browser.
+#### For Tesseract.js OCR (Client-Side)
+No environment variables are required. Tesseract runs locally in the browser with WebAssembly support.
 
 #### For Google Cloud Vision API
 Create a `.env.local` file with your Google Cloud credentials:

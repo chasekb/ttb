@@ -30,7 +30,7 @@ The TTB Label Verification System is a Next.js web application that simulates TT
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
 │  │   OCR       │  │Verification │  │Text         │            │
 │  │ Processing  │  │ Logic       │  │Processing  │            │
-│  │ (Tesseract) │  │             │  │ Utils      │            │
+│  │ (Dual)      │  │             │  │ Utils      │            │
 │  └─────────────┘  └─────────────┘  └─────────────┘            │
 └─────────────────────────────────────────────────────────────────┘
                                 │
@@ -42,6 +42,17 @@ The TTB Label Verification System is a Next.js web application that simulates TT
 │  │   Types     │  │   File      │  │   State     │            │
 │  │ Definitions │  │ Handling    │  │ Management  │            │
 │  │             │  │             │  │             │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      OCR Provider Layer                         │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │ Tesseract.js│  │Google Cloud │  │OCR Provider │            │
+│  │ (Client)    │  │Vision API   │  │Factory      │            │
+│  │             │  │ (Server)    │  │             │            │
 │  └─────────────┘  └─────────────┘  └─────────────┘            │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -80,12 +91,15 @@ The TTB Label Verification System is a Next.js web application that simulates TT
 
 ### 2. Business Logic Layer
 
-#### OCR Processing (`src/utils/ocr.ts`)
-- **Technology**: Tesseract.js (client-side)
+#### OCR Processing (`src/utils/ocr.ts` & `src/utils/ocrProviders.ts`)
+- **Technology**: Dual OCR provider support
+  - **Tesseract.js**: Client-side processing with WebAssembly
+  - **Google Cloud Vision API**: Server-side processing via API routes
 - **Functions**:
-  - `extractTextFromImage()`: Main OCR processing
+  - `extractTextFromImage()`: Main OCR processing with provider selection
   - `isOCRResult()`: Type guard for OCR results
-- **Error Handling**: Invalid images, file size limits, OCR failures
+  - `OCRProviderFactory`: Factory pattern for provider management
+- **Error Handling**: Invalid images, file size limits, OCR failures, API errors
 
 #### Text Processing (`src/utils/textProcessing.ts`)
 - **Functions**:
@@ -100,37 +114,57 @@ The TTB Label Verification System is a Next.js web application that simulates TT
 - **Function**: `verifyLabel()`: Main verification algorithm
 - **Output**: Comprehensive verification results with match/mismatch details
 
-### 3. Data Layer
+### 3. OCR Provider Layer
+
+#### OCR Provider Factory (`src/utils/ocrProviders.ts`)
+- **TesseractProvider**: Client-side OCR using Tesseract.js with WebAssembly
+- **GoogleCloudVisionProvider**: Server-side OCR using Google Cloud Vision API
+- **OCRProviderFactory**: Factory pattern for provider selection and management
+- **Error Handling**: Comprehensive error handling for both providers
+
+#### API Routes (`src/app/api/ocr/google-cloud-vision/route.ts`)
+- **Google Cloud Vision Integration**: Server-side API endpoint for Google Cloud Vision
+- **Authentication**: Environment variable-based credential management
+- **Error Handling**: API-specific error handling and response formatting
+
+### 4. Data Layer
 
 #### Type Definitions (`src/types/index.ts`)
-- **TTBFormData**: Form input structure
-- **OCRResult**: OCR processing results
-- **VerificationResult**: Verification output structure
-- **ProcessingError**: Error handling types
+- **TTBFormData**: Form input structure with OCR provider selection
+- **OCRResult**: OCR processing results with confidence scores
+- **VerificationResult**: Verification output structure with detailed match information
+- **ProcessingError**: Error handling types for different failure scenarios
+- **OCRProvider**: Type-safe provider selection
 
 ## Data Flow
 
 1. **User Input**: User fills TTB form and uploads label image
 2. **Form Validation**: Client-side validation of form data
-3. **Image Processing**: OCR extraction using Tesseract.js
-4. **Text Analysis**: Normalization and extraction of key information
-5. **Verification**: Comparison of form data with extracted text
-6. **Results Display**: Visual presentation of verification results
+3. **OCR Provider Selection**: User chooses between Tesseract.js or Google Cloud Vision API
+4. **Image Processing**: OCR extraction using selected provider
+5. **Text Analysis**: Normalization and extraction of key information
+6. **Verification**: Comparison of form data with extracted text
+7. **Results Display**: Visual presentation of verification results
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14 with TypeScript
+- **Frontend**: Next.js 16 with TypeScript
 - **Styling**: Tailwind CSS v4
-- **OCR**: Tesseract.js (client-side processing)
+- **OCR**: Dual provider support (Tesseract.js client-side + Google Cloud Vision API server-side)
 - **State Management**: React hooks (useState)
 - **File Handling**: Native File API
 - **Build Tool**: Next.js built-in bundler
 
 ## Key Design Decisions
 
-### 1. Client-Side OCR Processing
-- **Rationale**: Eliminates need for API keys, reduces costs, improves privacy
-- **Trade-offs**: Larger bundle size, processing time depends on client device
+### 1. Dual OCR Provider Architecture
+- **Rationale**: Provides flexibility between client-side processing (Tesseract.js) and server-side processing (Google Cloud Vision API)
+- **Benefits**: 
+  - Tesseract.js: No API keys required, client-side processing, privacy-focused
+  - Google Cloud Vision: Higher accuracy, server-side processing, enterprise-grade
+- **Trade-offs**: 
+  - Tesseract.js: Larger bundle size, processing depends on client device
+  - Google Cloud Vision: Requires API keys, network dependency, costs
 
 ### 2. Component-Based Architecture
 - **Rationale**: Modular, reusable, testable components
@@ -166,8 +200,11 @@ The TTB Label Verification System is a Next.js web application that simulates TT
 
 ## Future Enhancements
 
-1. **Server-Side OCR**: Option for more powerful OCR processing
-2. **Database Integration**: Store verification history
-3. **Advanced Matching**: Machine learning-based text matching
-4. **Batch Processing**: Multiple image verification
-5. **API Integration**: Real TTB API integration
+1. **Advanced OCR Providers**: Integration with additional OCR services (AWS Textract, Azure Computer Vision)
+2. **Database Integration**: Store verification history and user sessions
+3. **Machine Learning**: ML-based text matching and label classification
+4. **Batch Processing**: Multiple image verification in a single session
+5. **Real TTB API Integration**: Connect with actual TTB label approval APIs
+6. **Enhanced Matching**: More sophisticated fuzzy matching algorithms
+7. **Label Template Recognition**: Detect and validate against known label templates
+8. **Compliance Checking**: Automated compliance validation against TTB regulations
