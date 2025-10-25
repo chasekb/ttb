@@ -45,6 +45,44 @@ export function extractVolume(text: string, expectedVolume?: string): string | n
     if (normalizedText.includes(normalizedExpected)) {
       return expectedVolume;
     }
+    
+    // Try to find volume patterns in the text
+    const volumePatterns = [
+      /(\d+(?:\.\d+)?)\s*cl/i,
+      /(\d+(?:\.\d+)?)\s*ml/i,
+      /(\d+(?:\.\d+)?)\s*liter/i,
+      /(\d+(?:\.\d+)?)\s*l/i,
+      /(\d+(?:\.\d+)?)\s*ounce/i,
+      /(\d+(?:\.\d+)?)\s*oz/i,
+      /(\d+(?:\.\d+)?)\s*fl\s*oz/i,
+    ];
+    
+    for (const pattern of volumePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const foundVolume = match[0];
+        const normalizedFound = normalizeText(foundVolume);
+        const normalizedExpected = normalizeText(expectedVolume);
+        
+        // Check if the found volume matches the expected volume
+        if (normalizedFound.includes(normalizedExpected) || normalizedExpected.includes(normalizedFound)) {
+          return foundVolume;
+        }
+        
+        // Also check if the numeric part matches (e.g., "70cl" matches "70 cl")
+        const numericMatch = foundVolume.match(/(\d+(?:\.\d+)?)/);
+        const expectedNumericMatch = expectedVolume.match(/(\d+(?:\.\d+)?)/);
+        
+        if (numericMatch && expectedNumericMatch) {
+          const foundNumber = numericMatch[1];
+          const expectedNumber = expectedNumericMatch[1];
+          
+          if (foundNumber === expectedNumber) {
+            return foundVolume;
+          }
+        }
+      }
+    }
   }
 
   return null;
@@ -85,6 +123,34 @@ export function checkGovernmentWarning(text: string): { found: boolean; text?: s
     /not\s*for\s*children/gi,
     /18\+/gi,
     /21\+/gi,
+    // Malay/Indonesian warnings (for Jack Daniels and other international products)
+    /meminum\s*arak\s*boleh\s*membahayakan\s*kesihatan/gi,
+    /meminum\s*arak/gi,
+    /membahayakan\s*kesihatan/gi,
+    /bahaya\s*untuk\s*kesehatan/gi,
+    /minuman\s*beralkohol/gi,
+    // Spanish warnings
+    /consumir\s*con\s*moderación/gi,
+    /abuso\s*peligroso/gi,
+    /prohibido\s*menores/gi,
+    /embarazadas/gi,
+    // German warnings
+    /alkoholmissbrauch\s*gefährlich/gi,
+    /mit\s*maß\s*genießen/gi,
+    /schwangeren\s*frauen/gi,
+    // Italian warnings
+    /abuso\s*pericoloso/gi,
+    /consumare\s*con\s*moderazione/gi,
+    /donne\s*incinte/gi,
+    // Portuguese warnings
+    /abuso\s*perigoso/gi,
+    /consumir\s*com\s*moderação/gi,
+    /mulheres\s*grávidas/gi,
+    // Generic international patterns
+    /health\s*warning/gi,
+    /alcohol\s*warning/gi,
+    /drinking\s*warning/gi,
+    /consumption\s*warning/gi,
   ];
 
   for (const pattern of warningPatterns) {
