@@ -57,7 +57,7 @@ export function verifyLabel(formData: TTBFormData, ocrResult: OCRResult): Verifi
     },
     alcoholContent: formData.alcoholContent !== undefined ? {
       match: alcoholContentMatch,
-      extracted: extractedAlcohol || 0,
+      extracted: extractedAlcohol,
       expected: formData.alcoholContent,
     } : undefined,
     netContents: formData.netContents ? {

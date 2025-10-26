@@ -24,9 +24,14 @@ describe('TTBForm', () => {
   it('should initialize with default values', () => {
     render(<TTBForm onSubmit={mockOnSubmit} />)
 
-    expect(screen.getByDisplayValue('')).toBeInTheDocument() // Brand name
-    expect(screen.getByDisplayValue('Select product type')).toBeInTheDocument() // Product class
-    expect(screen.getByDisplayValue('google-cloud-vision')).toBeInTheDocument() // OCR provider
+    const brandInput = screen.getByLabelText(/brand name/i)
+    expect(brandInput).toHaveValue('')
+
+    const productSelect = screen.getByLabelText(/product class/i)
+    expect(productSelect).toHaveValue('')
+
+    const ocrSelect = screen.getByLabelText(/ocr provider/i)
+    expect(ocrSelect).toHaveValue('google-cloud-vision')
   })
 
   it('should validate required fields', async () => {
@@ -50,15 +55,26 @@ describe('TTBForm', () => {
 
     render(<TTBForm onSubmit={mockOnSubmit} />)
 
-    const alcoholInput = screen.getByLabelText(/alcohol content/i)
+    // Fill required fields first
+    const brandInput = screen.getByLabelText(/brand name/i)
+    await user.clear(brandInput)
+    await user.type(brandInput, 'Budweiser')
+
+    const productSelect = screen.getByLabelText(/product class/i)
+    await user.selectOptions(productSelect, 'Beer')
+
+    // Set invalid alcohol content by directly setting the value (bypassing HTML5 validation)
+    const alcoholInput = screen.getByLabelText(/alcohol content/i) as HTMLInputElement
     await user.clear(alcoholInput)
-    await user.type(alcoholInput, '150')
+    alcoholInput.value = '150' // Directly set value to bypass HTML5 validation
+    fireEvent.change(alcoholInput, { target: { value: '150' } })
 
     const submitButton = screen.getByRole('button', { name: /submit for verification/i })
     await user.click(submitButton)
 
+    // Should show validation error and not submit
     await waitFor(() => {
-      expect(screen.getByText('Alcohol content must be between 0 and 100%')).toBeInTheDocument()
+      expect(screen.getByText(/alcohol content must be between 0 and 100%/i)).toBeInTheDocument()
     })
 
     expect(mockOnSubmit).not.toHaveBeenCalled()

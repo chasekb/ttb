@@ -5,33 +5,38 @@ export function normalizeText(text: string): string {
 }
 
 export function extractAlcoholPercentage(text: string, expectedAlcohol?: number): number | null {
-  // If we have an expected alcohol percentage, search for it directly in the text
-  if (expectedAlcohol !== undefined) {
-    const alcoholPatterns = [
-      /(\d+(?:\.\d+)?)\s*%/i,
-      /(\d+(?:\.\d+)?)\s*abv/i,
-      /(\d+(?:\.\d+)?)\s*alc\/vol/i,
-      /alcohol\s*by\s*volume[:\s]*(\d+(?:\.\d+)?)/i,
-      /alc\.?\s*(\d+(?:\.\d+)?)\s*%/i,
-    ];
+  const alcoholPatterns = [
+    /(\d+(?:\.\d+)?)\s*%/i,
+    /(\d+(?:\.\d+)?)\s*abv/i,
+    /(\d+(?:\.\d+)?)\s*alc\/vol/i,
+    /alcohol\s*by\s*volume[:\s]*(\d+(?:\.\d+)?)/i,
+    /alc\.?\s*(\d+(?:\.\d+)?)\s*%/i,
+  ];
 
-    for (const pattern of alcoholPatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        const percentage = parseFloat(match[1]);
-        if (percentage >= 0 && percentage <= 100) {
-          // Check if this matches the expected value (within 0.1% tolerance)
+  for (const pattern of alcoholPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const percentage = parseFloat(match[1]);
+      // Strict validation: must be between 0 and 100
+      if (percentage > 0 && percentage <= 100) {
+        // If we have an expected alcohol percentage, check if this matches (within 0.1% tolerance)
+        if (expectedAlcohol !== undefined) {
           if (Math.abs(percentage - expectedAlcohol) <= 0.1) {
             return percentage;
           }
+        } else {
+          // If no expected value, return the first valid percentage found
+          return percentage;
         }
       }
     }
-    
-    // If no exact match found, return null (indicating mismatch)
+  }
+
+  // If we have an expected alcohol and no match found, return null (indicating mismatch)
+  if (expectedAlcohol !== undefined) {
     return null;
   }
-  
+
   return null;
 }
 
@@ -116,4 +121,3 @@ export function extractProductClass(text: string, expectedProductClass?: string)
   
   return null;
 }
-

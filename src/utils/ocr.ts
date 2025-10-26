@@ -11,5 +11,10 @@ export async function extractTextFromImage(
 }
 
 export function isOCRResult(result: OCRResult | ProcessingError): result is OCRResult {
-  return 'text' in result && 'confidence' in result;
+  return (
+    'text' in result &&
+    'confidence' in result &&
+    typeof result.text === 'string' &&
+    typeof result.confidence === 'number'
+  );
 }

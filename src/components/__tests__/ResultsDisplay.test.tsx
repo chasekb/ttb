@@ -99,7 +99,7 @@ describe('ResultsDisplay', () => {
 
     // Check brand name
     expect(screen.getByText('Brand Name')).toBeInTheDocument()
-    expect(screen.getByText('Matched')).toBeInTheDocument()
+    expect(screen.getAllByText('Matched')).toHaveLength(4) // 4 fields should be matched
     expect(screen.getAllByText('✅')).toHaveLength(6) // Overall + 5 details
 
     // Check product class

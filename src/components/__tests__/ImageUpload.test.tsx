@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ImageUpload from '../ImageUpload'
-import { createMockImageFile, createMockTextFile } from '../../utils/__tests__/test-utils'
+import { createMockImageFile, createMockTextFile } from '../../utils/test-utils'
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
 const mockCreateObjectURL = jest.fn()
@@ -36,36 +36,43 @@ describe('ImageUpload', () => {
     expect(screen.getByText(/png, jpg, gif up to 10mb/i)).toBeInTheDocument()
   })
 
-  it('should handle file selection via click', async () => {
+  it('should handle file selection via button click', async () => {
     const user = userEvent.setup()
     const file = createMockImageFile('test.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox') // File input has role textbox in some browsers
-    await user.upload(fileInput, file)
+    // Click the upload button
+    const uploadButton = screen.getByRole('button', { name: /click to upload/i })
+    await user.click(uploadButton)
+
+    // Get the hidden file input and simulate file selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    expect(fileInput).toBeInTheDocument()
+
+    // Simulate file selection by calling the onChange handler directly
+    fireEvent.change(fileInput, { target: { files: [file] } })
 
     expect(mockOnImageSelect).toHaveBeenCalledWith(file)
     expect(mockCreateObjectURL).toHaveBeenCalledWith(file)
     expect(screen.getByAltText('Preview')).toBeInTheDocument()
   })
 
-  it('should display file preview after selection', async () => {
-    const user = userEvent.setup()
+  it('should display file preview after selection', () => {
     const file = createMockImageFile('test.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox')
-    await user.upload(fileInput, file)
+    // Get the hidden file input and simulate file selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [file] } })
 
     expect(screen.getByAltText('Preview')).toBeInTheDocument()
     expect(screen.getByText(/test.jpg/i)).toBeInTheDocument()
     expect(screen.getByText(/\d+\.\d+ mb/i)).toBeInTheDocument()
   })
 
-  it('should handle drag and drop', async () => {
-    const user = userEvent.setup()
+  it('should handle drag and drop', () => {
     const file = createMockImageFile('test.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
@@ -114,15 +121,15 @@ describe('ImageUpload', () => {
     expect(dropZone).not.toHaveClass('border-blue-400', 'bg-blue-50')
   })
 
-  it('should validate file type and reject non-images', async () => {
-    const user = userEvent.setup()
+  it('should validate file type and reject non-images', () => {
     const textFile = createMockTextFile('test.txt')
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {})
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox')
-    await user.upload(fileInput, textFile)
+    // Get the hidden file input and simulate file selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [textFile] } })
 
     expect(alertSpy).toHaveBeenCalledWith(
       expect.stringContaining('valid image file')
@@ -132,8 +139,7 @@ describe('ImageUpload', () => {
     alertSpy.mockRestore()
   })
 
-  it('should validate file size and reject large files', async () => {
-    const user = userEvent.setup()
+  it('should validate file size and reject large files', () => {
     const largeFile = createMockImageFile('large.jpg')
     Object.defineProperty(largeFile, 'size', { value: 15 * 1024 * 1024 }) // 15MB
 
@@ -141,8 +147,9 @@ describe('ImageUpload', () => {
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox')
-    await user.upload(fileInput, largeFile)
+    // Get the hidden file input and simulate file selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [largeFile] } })
 
     expect(alertSpy).toHaveBeenCalledWith(
       expect.stringContaining('too large')
@@ -152,19 +159,18 @@ describe('ImageUpload', () => {
     alertSpy.mockRestore()
   })
 
-  it('should remove file when remove button is clicked', async () => {
-    const user = userEvent.setup()
+  it('should remove file when remove button is clicked', () => {
     const file = createMockImageFile('test.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    // Upload file first
-    const fileInput = screen.getByRole('textbox')
-    await user.upload(fileInput, file)
+    // Select file first
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [file] } })
 
     // Click remove button
     const removeButton = screen.getByText('×')
-    await user.click(removeButton)
+    fireEvent.click(removeButton)
 
     expect(mockRevokeObjectURL).toHaveBeenCalledWith('mock-object-url')
     expect(screen.queryByAltText('Preview')).not.toBeInTheDocument()
@@ -174,43 +180,39 @@ describe('ImageUpload', () => {
   it('should disable interactions when loading', () => {
     render(<ImageUpload onImageSelect={mockOnImageSelect} isLoading={true} />)
 
-    const fileInput = screen.getByRole('textbox')
-    expect(fileInput).toBeDisabled()
+    const uploadButton = screen.getByRole('button', { name: /click to upload/i })
+    expect(uploadButton).toBeDisabled()
 
-    const clickButton = screen.getByText(/click to upload/i)
-    expect(clickButton.closest('button')).toBeDisabled()
-
-    const dropZone = clickButton.closest('div')
+    const dropZone = uploadButton.closest('div')
     expect(dropZone).toHaveClass('opacity-50', 'pointer-events-none')
   })
 
-  it('should handle multiple file selection and use first file', async () => {
-    const user = userEvent.setup()
+  it('should handle multiple file selection and use first file', () => {
     const file1 = createMockImageFile('test1.jpg')
     const file2 = createMockImageFile('test2.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox')
-    await user.upload(fileInput, [file1, file2])
+    // Get the hidden file input and simulate file selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [file1, file2] } })
 
     expect(mockOnImageSelect).toHaveBeenCalledWith(file1)
   })
 
-  it('should clear file input when removing file', async () => {
-    const user = userEvent.setup()
+  it('should clear file input when removing file', () => {
     const file = createMockImageFile('test.jpg')
 
     render(<ImageUpload onImageSelect={mockOnImageSelect} />)
 
-    const fileInput = screen.getByRole('textbox') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
 
-    // Upload file first
-    await user.upload(fileInput, file)
+    // Select file first
+    fireEvent.change(fileInput, { target: { files: [file] } })
 
     // Click remove button
     const removeButton = screen.getByText('×')
-    await user.click(removeButton)
+    fireEvent.click(removeButton)
 
     expect(fileInput.value).toBe('')
   })

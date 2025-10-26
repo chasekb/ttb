@@ -48,6 +48,10 @@ describe('textProcessing', () => {
       expect(extractAlcoholPercentage('-5% ABV')).toBeNull()
     })
 
+    it('should return null for text without percentages', () => {
+      expect(extractAlcoholPercentage('No alcohol here')).toBeNull()
+    })
+
     it('should handle expected alcohol parameter', () => {
       expect(extractAlcoholPercentage('12.5% ABV', 12.5)).toBe(12.5)
       expect(extractAlcoholPercentage('12.5% ABV', 13.0)).toBeNull()

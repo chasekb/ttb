@@ -28,7 +28,7 @@ export interface VerificationResult {
   };
   alcoholContent?: {
     match: boolean;
-    extracted: number;
+    extracted: number | null;
     expected: number;
   };
   netContents?: {
