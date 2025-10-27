@@ -119,7 +119,9 @@ class GoogleAIStudioProvider implements OCRProviderInterface {
         const result = reader.result as string;
         // Remove data:image/...;base64, prefix
         const base64 = result.split(',')[1];
-        resolve(base64);
+        // Clean up any whitespace/newlines that might corrupt the base64 string
+        const cleanedBase64 = base64.replace(/\s/g, '');
+        resolve(cleanedBase64);
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);

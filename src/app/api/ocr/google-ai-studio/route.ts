@@ -24,8 +24,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Clean up any whitespace/newlines from the base64 string
+    const cleanImage = image.replace(/\s/g, '');
+
     // Convert base64 image to the format expected by Google AI Studio
-    const imageBuffer = Buffer.from(image, 'base64');
+    const imageBuffer = Buffer.from(cleanImage, 'base64');
 
     // Detect MIME type from the image buffer
     const mimeType = imageBuffer.length > 8 && imageBuffer.toString('ascii', 0, 8) === '\x89PNG\r\n\x1a\n'
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
             {
               inline_data: {
                 mime_type: mimeType,
-                data: image
+                data: cleanImage
               }
             }
           ]
