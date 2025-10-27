@@ -25,7 +25,7 @@
 *.pem
 spec.md
 TODO.md
-testimages/
+testimages/*
 
 # debug
 npm-debug.log*
