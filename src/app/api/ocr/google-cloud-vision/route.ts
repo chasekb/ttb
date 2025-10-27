@@ -105,10 +105,16 @@ export async function POST(request: NextRequest) {
     console.error('Google Cloud Vision API error:', error);
     console.error('Error type:', typeof error);
     console.error('Error keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A');
-    
+
     const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : 'No stack trace',
+      code: (error as any)?.code,
+      status: (error as any)?.status,
+      details: (error as any)?.details,
+      metadata: (error as any)?.metadata,
+      note: (error as any)?.note,
+      cause: (error as any)?.cause,
       imageSize: image ? image.length : 'No image',
       credentials: {
         hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,

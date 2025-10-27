@@ -71,17 +71,16 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       let errorMessage = `Google AI Studio API error: ${response.status} ${response.statusText}`;
-      let errorDetails: any = {};
+      let errorData: any = {};
 
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
         console.error('Google AI Studio API error response:', {
           status: response.status,
           statusText: response.statusText,
           headers: Object.fromEntries(response.headers.entries()),
           errorData: errorData
         });
-        errorDetails = errorData;
 
         if (errorData.error && errorData.error.message) {
           errorMessage = errorData.error.message;
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
           headers: Object.fromEntries(response.headers.entries()),
           responseText: responseText
         });
-        errorDetails = { responseText };
+        errorData = { responseText };
       }
 
       // Log additional request details for debugging
@@ -107,19 +106,23 @@ export async function POST(request: NextRequest) {
         imageSize: image.length,
       });
 
-      // Return error directly without throwing
-      return NextResponse.json(
-        {
-          error: errorMessage,
-          details: errorDetails,
-          requestInfo: {
-            apiUrl: apiUrl,
-            mimeType: mimeType,
-            imageSize: image.length
-          }
-        },
-        { status: response.status }
-      );
+      // Return error directly without throwing - include all available error properties from Google AI Studio
+      const errorDetails = {
+        message: errorMessage,
+        code: errorData?.code,
+        status: errorData?.status,
+        details: errorData?.details,
+        error: errorData?.error,
+        ...errorData, // Include all other properties from the error response
+        imageSize: image ? image.length : 'No image',
+        requestInfo: {
+          apiUrl: apiUrl,
+          mimeType: mimeType,
+          imageSize: image.length
+        }
+      };
+
+      return NextResponse.json(errorDetails, { status: response.status });
     }
 
     const data = await response.json();
