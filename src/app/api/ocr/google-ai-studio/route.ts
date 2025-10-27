@@ -60,9 +60,18 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Google AI Studio API error:', errorData);
-      throw new Error(`Google AI Studio API error: ${response.statusText}`);
+      let errorMessage = `Google AI Studio API error: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        console.error('Google AI Studio API error:', errorData);
+        if (errorData.error && errorData.error.message) {
+          errorMessage = `Google AI Studio API error: ${errorData.error.message}`;
+        }
+      } catch (jsonError) {
+        // If response is not JSON, use the status text
+        console.error('Google AI Studio API error (non-JSON response):', response.statusText);
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
