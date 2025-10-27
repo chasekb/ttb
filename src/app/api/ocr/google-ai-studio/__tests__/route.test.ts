@@ -104,10 +104,16 @@ describe('/api/ocr/google-ai-studio', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    mockFetch.mockResolvedValueOnce({
+    const mockErrorResponse = {
       ok: false,
+      status: 500,
       statusText: 'Internal Server Error',
-    } as Response);
+      headers: new Headers(),
+      json: async () => ({ error: { message: 'API error occurred' } }),
+      text: async () => 'Error response',
+    };
+
+    mockFetch.mockResolvedValueOnce(mockErrorResponse as Response);
 
     const request = new NextRequest('http://localhost:3000/api/ocr/google-ai-studio', {
       method: 'POST',
@@ -118,7 +124,7 @@ describe('/api/ocr/google-ai-studio', () => {
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to process image with Google AI Studio');
+    expect(data.error).toBe('API error occurred');
   });
 
   it('should handle empty text response', async () => {

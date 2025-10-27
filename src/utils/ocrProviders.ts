@@ -144,12 +144,9 @@ class GoogleAIStudioProvider implements OCRProviderInterface {
       let errorMessage = `Google AI Studio API error: ${response.statusText}`;
       try {
         const errorData = await response.json();
+        // Extract error message directly from the error field
         if (errorData.error) {
           errorMessage = errorData.error;
-        } else if (errorData.details) {
-          errorMessage = errorData.details;
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
         }
       } catch (jsonError) {
         // If response is not JSON, use status text
