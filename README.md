@@ -15,6 +15,30 @@ This system helps verify that alcohol label information matches TTB application 
 - Providing detailed match/mismatch reporting
 - Checking for required government warning text
 
+## 📁 Project Structure
+
+```
+ttb/
+├── src/
+│   ├── app/                  # Next.js app router pages and API routes
+│   │   ├── api/ocr/         # API endpoints for OCR processing
+│   │   ├── components/       # React components
+│   │   ├── lib/             # Business logic (verification)
+│   │   ├── types/           # TypeScript type definitions
+│   │   ├── utils/           # Utility functions (OCR, text processing)
+│   │   └── __tests__/       # Integration tests
+│   ├── components/__tests__/ # Component unit tests
+│   ├── lib/__tests__/       # Library unit tests
+│   └── utils/__tests__/     # Utility unit tests
+├── docs/                    # Documentation
+│   ├── ARCHITECTURE.md      # System architecture details
+│   ├── TESTING.md           # Comprehensive testing guide
+│   ├── CR.md                # Code review documentation
+│   └── HIGH.md              # High-level requirements
+├── public/                  # Static assets
+└── testimages/              # Test image assets
+```
+
 ## ✨ Features
 
 - **TTB Form Interface** - Complete form with brand name, product class, alcohol content, and net contents
@@ -26,11 +50,15 @@ This system helps verify that alcohol label information matches TTB application 
 
 ## 🛠️ Technology Stack
 
-- **Frontend:** Next.js 16 with TypeScript
-- **Styling:** Tailwind CSS
-- **OCR:** Triple provider support - Tesseract.js (client-side) + Google Cloud Vision API (server-side) + Google AI Studio (Gemini AI)
+- **Frontend:** Next.js 16 with React 19 and TypeScript
+- **Styling:** Tailwind CSS v4
+- **OCR:** Triple provider support
+  - Tesseract.js (client-side OCR with WebAssembly)
+  - Google Cloud Vision API (server-side via API routes)
+  - Google AI Studio (Gemini AI via direct API calls)
+- **Testing:** Jest with React Testing Library, 80%+ code coverage
 - **Deployment:** Vercel
-- **File Handling:** Next.js built-in image optimization
+- **File Handling:** Native File API with type validation
 
 ## 🚀 Quick Start
 
@@ -86,8 +114,11 @@ npm start
 
 ### Step 2: Upload Label Image
 - Drag and drop an image file or click to browse
-- Supported formats: JPEG, PNG, GIF
-- Maximum file size: 10MB
+- Supported formats: JPEG, PNG, GIF, WebP
+- File size limits vary by OCR provider:
+  - Tesseract.js: Up to 50MB
+  - Google Cloud Vision API: Up to 20MB
+  - Google AI Studio: Up to 20MB
 - Image should be clear and readable for best OCR results
 
 ### Step 3: Review Results
@@ -278,6 +309,55 @@ GOOGLE_AI_API_KEY=your-api-key-here
 
 ## 🧪 Testing
 
+This project includes comprehensive testing with Jest and React Testing Library. The test suite covers unit tests, component tests, integration tests, and end-to-end workflow tests.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Run tests in CI mode
+npm run test:ci
+```
+
+### Test Coverage
+
+Current test coverage: ~53% overall (target: 80%+)
+
+**Coverage Breakdown:**
+- **Unit Tests:** Utility functions and business logic ✅
+- **Component Tests:** React component behavior ✅
+- **Integration Tests:** OCR provider integration ✅
+- **API Route Tests:** Server-side endpoints 📋 (planned improvements needed)
+
+### Test Structure
+
+```
+src/
+├── __tests__/
+│   ├── accessibility.test.tsx    # A11y testing with axe-core
+│   ├── integration.test.tsx      # OCR provider integration
+│   └── performance.test.tsx      # Performance benchmarks
+├── components/__tests__/
+│   ├── ImageUpload.test.tsx
+│   ├── ResultsDisplay.test.tsx
+│   └── TTBForm.test.tsx
+├── utils/__tests__/
+│   ├── ocr.test.ts
+│   └── textProcessing.test.ts
+├── lib/__tests__/
+│   └── verification.test.ts
+└── app/api/__tests__/
+    └── ocr/google-cloud-vision/
+```
+
 ### Manual Testing Checklist
 
 - [ ] Test with various label images (different formats, sizes)
@@ -294,6 +374,10 @@ For testing, use clear, high-resolution images of alcohol labels with:
 - Visible alcohol percentage
 - Government warning text
 - Brand name and product type
+
+### Additional Resources
+
+For detailed testing information, see [`docs/TESTING.md`](docs/TESTING.md).
 
 ## 🤝 Contributing
 
@@ -314,12 +398,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Vercel](https://vercel.com/) for deployment platform
 
+## 📚 Documentation
+
+### Additional Resources
+
+- **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** - Detailed system architecture and design decisions
+- **[`docs/TESTING.md`](docs/TESTING.md)** - Comprehensive testing guide and coverage reports
+- **[`docs/CR.md`](docs/CR.md)** - Code review guidelines and standards
+- **[`docs/HIGH.md`](docs/HIGH.md)** - High-level system requirements and specifications
+
 ## 📞 Support
 
 For questions or issues, please:
 1. Check the [Known Limitations](#-known-limitations) section
-2. Review existing [GitHub Issues](https://github.com/chasekb/ttb/issues)
-3. Create a new issue with detailed information
+2. Review the detailed documentation in the [`docs/`](docs/) directory
+3. Review existing [GitHub Issues](https://github.com/chasekb/ttb/issues)
+4. Create a new issue with detailed information
 
 ---
 
