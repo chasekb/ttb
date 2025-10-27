@@ -56,7 +56,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare the image for the API - Google Cloud Vision expects raw bytes
-    const imageBuffer = Buffer.from(image, 'base64');
+    const imageBuffer = Buffer.isBuffer(image)
+    ? image
+    : Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+  
     const imageRequest = {
       image: { content: imageBuffer },
       features: [{ type: 'TEXT_DETECTION' as const }],

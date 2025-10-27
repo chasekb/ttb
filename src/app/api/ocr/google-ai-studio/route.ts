@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
             {
               inline_data: {
                 mime_type: mimeType,
-                data: image
+                data: imageBuffer.toString('base64')
               }
             }
           ]
