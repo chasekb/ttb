@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Google Cloud Vision API error:', error);
-    console.error('Error details:', {
+    const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : 'No stack trace',
       imageSize: image ? image.length : 'No image',
@@ -87,9 +87,22 @@ export async function POST(request: NextRequest) {
         hasPrivateKey: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
         hasClientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
       }
-    });
+    };
+    console.error('Error details:', errorDetails);
+    
+    // Return a more specific error message
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process the image with Google Cloud Vision. Please try again.';
     return NextResponse.json(
-      { error: 'Failed to process the image with Google Cloud Vision. Please try again.' },
+      { 
+        error: errorMessage,
+        details: errorDetails.credentials.hasProjectId === false 
+          ? 'Missing GOOGLE_CLOUD_PROJECT_ID' 
+          : errorDetails.credentials.hasPrivateKey === false 
+          ? 'Missing GOOGLE_CLOUD_PRIVATE_KEY'
+          : errorDetails.credentials.hasClientEmail === false
+          ? 'Missing GOOGLE_CLOUD_CLIENT_EMAIL'
+          : errorMessage
+      },
       { status: 500 }
     );
   }

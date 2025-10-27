@@ -251,6 +251,10 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
         if (errorData.error) {
           errorMessage = errorData.error;
         }
+        // Include details if available
+        if (errorData.details) {
+          errorMessage += ` (${errorData.details})`;
+        }
       } catch (jsonError) {
         // If response is not JSON, use status text
         console.error('Failed to parse error response:', jsonError);
