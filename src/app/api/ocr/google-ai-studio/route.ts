@@ -1,6 +1,6 @@
 // app/api/ocr/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { fileTypeFromBuffer } from 'file-type';
+import { fileTypeFromBuffer } from 'file-type/core';
 
 export async function POST(request: NextRequest) {
   let image: string | undefined;
