@@ -42,8 +42,9 @@ export default function Home() {
         setError(errorText);
       }
     } catch (err) {
-      setError('An unexpected error occurred during processing.');
+      const errorDetails = err instanceof Error ? err.message : String(err);
       console.error('Processing error:', err);
+      setError(`An unexpected error occurred during processing. ${errorDetails}`);
     } finally {
       setIsProcessing(false);
     }
