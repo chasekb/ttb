@@ -3,8 +3,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  let image: string | undefined;
+
   try {
-    const { image } = await request.json();
+    const body = await request.json();
+    image = body.image;
 
     if (!image) {
       return NextResponse.json(
@@ -23,7 +26,13 @@ export async function POST(request: NextRequest) {
 
     // Convert base64 image to the format expected by Google AI Studio
     const imageBuffer = Buffer.from(image, 'base64');
-    const mimeType = 'image/jpeg'; // Default to JPEG, could be enhanced to detect actual type
+
+    // Detect MIME type from the image buffer
+    const mimeType = imageBuffer.length > 8 && imageBuffer.toString('ascii', 0, 8) === '\x89PNG\r\n\x1a\n'
+      ? 'image/png'
+      : imageBuffer.length > 4 && imageBuffer[0] === 0xFF && imageBuffer[1] === 0xD8 && imageBuffer[2] === 0xFF
+      ? 'image/jpeg'
+      : 'image/png'; // Default fallback to PNG since that's what we're testing with
 
     // Prepare the request for Google AI Studio Gemini API
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
@@ -37,7 +46,7 @@ export async function POST(request: NextRequest) {
             },
             {
               inline_data: {
-                mime_type: `image/${mimeType.split('/')[1]}`,
+                mime_type: mimeType,
                 data: image
               }
             }
@@ -60,18 +69,57 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      let errorMessage = `Google AI Studio API error: ${response.statusText}`;
+      let errorMessage = `Google AI Studio API error: ${response.status} ${response.statusText}`;
+      let errorDetails = {};
+
       try {
         const errorData = await response.json();
-        console.error('Google AI Studio API error:', errorData);
+        console.error('Google AI Studio API error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          errorData: errorData
+        });
+        errorDetails = errorData;
+
         if (errorData.error && errorData.error.message) {
           errorMessage = `Google AI Studio API error: ${errorData.error.message}`;
+        } else if (errorData.message) {
+          errorMessage = `Google AI Studio API error: ${errorData.message}`;
         }
       } catch (jsonError) {
-        // If response is not JSON, use the status text
-        console.error('Google AI Studio API error (non-JSON response):', response.statusText);
+        // If response is not JSON, log the raw response
+        const responseText = await response.text();
+        console.error('Google AI Studio API error (non-JSON response):', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          responseText: responseText
+        });
+        errorDetails = { responseText };
       }
-      throw new Error(errorMessage);
+
+      // Log additional request details for debugging
+      console.error('Google AI Studio API request details:', {
+        apiUrl: apiUrl,
+        mimeType: mimeType,
+        imageSize: image.length,
+        requestBody: requestBody
+      });
+
+      // Include detailed error information in the response for debugging
+      const detailedError = {
+        error: errorMessage,
+        details: errorDetails,
+        requestInfo: {
+          apiUrl: apiUrl,
+          mimeType: mimeType,
+          imageSize: image.length
+        }
+      };
+
+      console.error('Google AI Studio API final error:', detailedError);
+      throw new Error(JSON.stringify(detailedError));
     }
 
     const data = await response.json();
@@ -108,8 +156,26 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Google AI Studio API error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      imageSize: image ? image.length : 'No image',
+      credentials: {
+        hasApiKey: !!process.env.GOOGLE_AI_API_KEY,
+      }
+    });
+
+    // Return detailed error information for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to process image with Google AI Studio' },
+      {
+        error: 'Failed to process image with Google AI Studio',
+        details: errorMessage,
+        debug: {
+          imageSize: image ? image.length : 'No image',
+          hasApiKey: !!process.env.GOOGLE_AI_API_KEY,
+        }
+      },
       { status: 500 }
     );
   }

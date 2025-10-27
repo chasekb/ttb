@@ -3,8 +3,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  let image: string | undefined;
+
   try {
-    const { image } = await request.json();
+    const body = await request.json();
+    image = body.image;
 
     if (!image) {
       return NextResponse.json(
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Import Google Cloud Vision API client
     const { ImageAnnotatorClient } = await import('@google-cloud/vision');
-    
+
     // Initialize the client
     const client = new ImageAnnotatorClient({
       projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Prepare the image for the API
+    // Prepare the image for the API - Google Cloud Vision expects raw bytes
     const imageBuffer = Buffer.from(image, 'base64');
     const imageRequest = {
       image: { content: imageBuffer },
@@ -43,6 +46,12 @@ export async function POST(request: NextRequest) {
     // Call the Vision API
     const [result] = await client.annotateImage(imageRequest);
     const detections = result.textAnnotations;
+
+    console.log('Google Cloud Vision API result:', {
+      hasDetections: !!detections,
+      detectionsCount: detections ? detections.length : 0,
+      fullResult: result
+    });
 
     if (!detections || detections.length === 0) {
       return NextResponse.json({
@@ -55,6 +64,11 @@ export async function POST(request: NextRequest) {
     const fullText = detections[0].description || '';
     const confidence = detections[0].score || 0;
 
+    console.log('Google Cloud Vision extracted text:', {
+      text: fullText.substring(0, 200),
+      confidence: confidence
+    });
+
     return NextResponse.json({
       text: fullText,
       confidence: confidence,
@@ -62,8 +76,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Google Cloud Vision API error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      imageSize: image ? image.length : 'No image',
+      credentials: {
+        hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+        hasPrivateKey: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+        hasClientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+      }
+    });
     return NextResponse.json(
-      { error: 'Failed to process image with Google Cloud Vision API' },
+      { error: 'Failed to process the image with Google Cloud Vision. Please try again.' },
       { status: 500 }
     );
   }
