@@ -91,17 +91,27 @@ export async function POST(request: NextRequest) {
     console.error('Error details:', errorDetails);
     
     // Return a more specific error message
-    const errorMessage = error instanceof Error ? error.message : 'Failed to process the image with Google Cloud Vision. Please try again.';
+    let errorMessage = error instanceof Error ? error.message : 'Failed to process the image with Google Cloud Vision. Please try again.';
+    if (!errorMessage || errorMessage.trim() === '') {
+      errorMessage = 'Unknown error occurred while processing the image';
+    }
+    
+    // Determine details based on missing credentials
+    let errorDetailsText = '';
+    if (!errorDetails.credentials.hasProjectId) {
+      errorDetailsText = 'Missing GOOGLE_CLOUD_PROJECT_ID';
+    } else if (!errorDetails.credentials.hasPrivateKey) {
+      errorDetailsText = 'Missing GOOGLE_CLOUD_PRIVATE_KEY';
+    } else if (!errorDetails.credentials.hasClientEmail) {
+      errorDetailsText = 'Missing GOOGLE_CLOUD_CLIENT_EMAIL';
+    } else {
+      errorDetailsText = errorMessage;
+    }
+    
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: errorDetails.credentials.hasProjectId === false 
-          ? 'Missing GOOGLE_CLOUD_PROJECT_ID' 
-          : errorDetails.credentials.hasPrivateKey === false 
-          ? 'Missing GOOGLE_CLOUD_PRIVATE_KEY'
-          : errorDetails.credentials.hasClientEmail === false
-          ? 'Missing GOOGLE_CLOUD_CLIENT_EMAIL'
-          : errorMessage
+        details: errorDetailsText
       },
       { status: 500 }
     );

@@ -208,7 +208,6 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
       return {
         type: 'OCR_FAILED',
         message: errorMessage,
-        details: errorMessage,
       };
     }
   }
