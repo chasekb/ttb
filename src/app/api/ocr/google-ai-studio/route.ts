@@ -1,6 +1,6 @@
-// Google AI Studio OCR API Endpoint
-
+// app/api/ocr/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { fileTypeFromBuffer } from 'file-type';
 
 export async function POST(request: NextRequest) {
   let image: string | undefined;
@@ -20,24 +20,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert base64 image to buffer
+    // ✅ Validate Base64
+    const base64Regex = /^[A-Za-z0-9+/=]+$/;
+    if (!base64Regex.test(image.replace(/\s/g, ''))) {
+      return NextResponse.json(
+        { error: 'Invalid Base64 image data' },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Convert to Buffer
     const imageBuffer = Buffer.from(image, 'base64');
 
-    // Detect MIME type
-    const mimeType =
-      imageBuffer.length > 8 &&
-      imageBuffer.toString('ascii', 0, 8) === '\x89PNG\r\n\x1a\n'
-        ? 'image/png'
-        : imageBuffer.length > 4 &&
-          imageBuffer[0] === 0xff &&
-          imageBuffer[1] === 0xd8 &&
-          imageBuffer[2] === 0xff
-        ? 'image/jpeg'
-        : 'image/png';
+    // ✅ Detect MIME type using `file-type`
+    const detectedType = await fileTypeFromBuffer(imageBuffer);
+    const mimeType = detectedType?.mime || 'image/png'; // fallback
 
-    // Google AI Studio Gemini endpoint
+    // ✅ Google AI Studio endpoint (latest stable)
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
 
+    // ✅ Build request payload
     const requestBody = {
       contents: [
         {
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Make request to Google AI Studio
+    // ✅ Call Google AI Studio
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -75,8 +77,12 @@ export async function POST(request: NextRequest) {
       try {
         errorData = await response.json();
       } catch {
-        rawResponse = await response.text();
-        errorData = { rawResponse };
+        try {
+          rawResponse = await response.text();
+          errorData = { rawResponse };
+        } catch {
+          rawResponse = '[No response body]';
+        }
       }
 
       // Flatten nested "error" object if present
@@ -88,11 +94,12 @@ export async function POST(request: NextRequest) {
       const errorDetails = {
         message:
           errorData.message ||
+          rawResponse ||
           `Google AI Studio API error: ${response.status} ${response.statusText}`,
-        code: errorData.code,
+        code: errorData.code || response.status,
         status: errorData.status || response.statusText,
-        details: errorData.details,
-        ...errorData, // include all remaining fields
+        details: errorData.details || null,
+        ...errorData,
         rawResponse: rawResponse || undefined,
         http: {
           status: response.status,
@@ -107,14 +114,12 @@ export async function POST(request: NextRequest) {
         },
       };
 
-      console.error('Google AI Studio API Error:', errorDetails);
+      console.error('Google AI Studio API Error (Full Dump):', errorDetails);
       return NextResponse.json(errorDetails, { status: response.status });
     }
-    // ---------- SUCCESS HANDLING ----------
 
+    // ---------- SUCCESS ----------
     const data = await response.json();
-
-    // Extract text from Gemini response
     const candidate = data.candidates?.[0];
     const textPart = candidate?.content?.parts?.[0]?.text ?? '';
     const extractedText = textPart.replace(/[#*_`]/g, '').trim();
@@ -130,10 +135,7 @@ export async function POST(request: NextRequest) {
         ? 0.7
         : 0.8;
 
-    return NextResponse.json({
-      text: extractedText,
-      confidence,
-    });
+    return NextResponse.json({ text: extractedText, confidence });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 

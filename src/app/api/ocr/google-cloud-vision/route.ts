@@ -74,9 +74,9 @@ export async function POST(request: NextRequest) {
       apiResult, // Include the full Vision API output
     });
   } catch (error: any) {
-    console.error('Google Cloud Vision API error:', error);
+    console.error('Google Cloud Vision API error (raw):', error);
 
-    // Extract all possible properties safely
+    // Try to extract as much as possible
     const allProps: Record<string, any> = {};
     try {
       const props = [
@@ -85,29 +85,32 @@ export async function POST(request: NextRequest) {
       ];
       for (const key of props) {
         try {
-          allProps[key] = (error as any)[key];
-        } catch {
-          allProps[key] = '[unreadable]';
+          allProps[key] =
+            typeof (error as any)[key] === 'object'
+              ? JSON.stringify((error as any)[key], null, 2)
+              : (error as any)[key];
+        } catch (innerErr) {
+          allProps[key] = `[unreadable: ${(innerErr as Error)?.message}]`;
         }
       }
-    } catch {
-      allProps['_errorPropsExtractionFailed'] = true;
+    } catch (extractErr) {
+      allProps['_errorPropsExtractionFailed'] = (extractErr as Error)?.message;
     }
 
-    // Build structured response
+    // Google Vision often attaches useful info in gRPC metadata and details
     const errorResponse = {
-      message: error?.message ?? 'Unknown error',
-      name: error?.name ?? 'Error',
-      type: typeof error,
+      message: error?.message || 'Unknown error',
+      name: error?.name,
       code: error?.code,
       status: error?.status,
-      stack: error?.stack,
       details: error?.details,
-      metadata: error?.metadata,
       note: error?.note,
-      cause: error?.cause,
+      metadata: error?.metadata
+        ? JSON.stringify(error.metadata, null, 2)
+        : 'No metadata',
+      stack: error?.stack || 'No stack trace',
+      fullStringified: JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
       allProperties: allProps,
-      lastApiResult: lastApiResult || null, // Include Vision API result if available
       context: {
         imageSize: image ? image.length : 'No image provided',
         hasCredentials: {
@@ -116,10 +119,10 @@ export async function POST(request: NextRequest) {
           clientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
         },
       },
+      lastApiResult: lastApiResult || null,
     };
 
-    // Log full structure to server console for debugging
-    console.error('Full error response:', JSON.stringify(errorResponse, null, 2));
+    console.error('Full error details:', JSON.stringify(errorResponse, null, 2));
 
     return NextResponse.json(
       {
