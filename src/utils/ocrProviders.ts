@@ -64,6 +64,89 @@ class TesseractProvider implements OCRProviderInterface {
   }
 }
 
+// Google AI Studio Provider
+class GoogleAIStudioProvider implements OCRProviderInterface {
+  async extractText(imageFile: File): Promise<OCRResult | ProcessingError> {
+    try {
+      // Validate file type
+      if (!imageFile.type.startsWith('image/')) {
+        return {
+          type: 'INVALID_IMAGE',
+          message: 'Please upload a valid image file (JPEG, PNG, etc.)',
+        };
+      }
+
+      // Validate file size (Google AI Studio supports up to 20MB per image)
+      if (imageFile.size > 20 * 1024 * 1024) {
+        return {
+          type: 'INVALID_IMAGE',
+          message: 'Image file is too large. Please upload an image smaller than 20MB.',
+        };
+      }
+
+      // Convert file to base64
+      const base64Image = await this.fileToBase64(imageFile);
+
+      // Call Google AI Studio API
+      const result = await this.callGoogleAIStudioAPI(base64Image);
+
+      if (!result.text || result.text.trim().length === 0) {
+        return {
+          type: 'NO_TEXT_FOUND',
+          message: 'No text could be extracted from the image. Please try a clearer image.',
+        };
+      }
+
+      return {
+        text: result.text,
+        confidence: result.confidence,
+      };
+    } catch (error) {
+      console.error('Google AI Studio OCR processing error:', error);
+      return {
+        type: 'OCR_FAILED',
+        message: 'Failed to process the image with Google AI Studio. Please try again.',
+      };
+    }
+  }
+
+  private async fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data:image/...;base64, prefix
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private async callGoogleAIStudioAPI(base64Image: string): Promise<{ text: string; confidence: number }> {
+    const response = await fetch('/api/ocr/google-ai-studio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: base64Image,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google AI Studio API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      text: data.text || '',
+      confidence: data.confidence || 0,
+    };
+  }
+}
+
 // Google Cloud Vision API Provider
 class GoogleCloudVisionProvider implements OCRProviderInterface {
   async extractText(imageFile: File): Promise<OCRResult | ProcessingError> {
@@ -158,6 +241,7 @@ export class OCRProviderFactory {
   private static providers: Record<OCRProvider, OCRProviderInterface> = {
     'tesseract': new TesseractProvider(),
     'google-cloud-vision': new GoogleCloudVisionProvider(),
+    'google-ai-studio': new GoogleAIStudioProvider(),
   };
 
   static getProvider(provider: OCRProvider): OCRProviderInterface {

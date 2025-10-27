@@ -19,7 +19,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **TTB Form Interface** - Complete form with brand name, product class, alcohol content, and net contents
 - **Drag-and-Drop Image Upload** - Easy image upload with preview functionality
-- **Dual OCR Support** - Choose between Tesseract.js (client-side) or Google Cloud Vision API (server-side)
+- **Triple OCR Support** - Choose between Tesseract.js (client-side), Google Cloud Vision API (server-side), or Google AI Studio (Gemini AI)
 - **Intelligent Verification** - Fuzzy matching with tolerance for OCR errors
 - **Detailed Results** - Comprehensive reporting with visual indicators
 - **Error Handling** - Graceful handling of invalid images and processing failures
@@ -28,7 +28,7 @@ This system helps verify that alcohol label information matches TTB application 
 
 - **Frontend:** Next.js 16 with TypeScript
 - **Styling:** Tailwind CSS
-- **OCR:** Dual provider support - Tesseract.js (client-side) + Google Cloud Vision API (server-side)
+- **OCR:** Triple provider support - Tesseract.js (client-side) + Google Cloud Vision API (server-side) + Google AI Studio (Gemini AI)
 - **Deployment:** Vercel
 - **File Handling:** Next.js built-in image optimization
 
@@ -82,7 +82,7 @@ npm start
 - **Product Class/Type:** Select from dropdown (Bourbon, Vodka, IPA, etc.)
 - **Alcohol Content (ABV):** Enter percentage (0-100%)
 - **Net Contents:** Optional volume information (e.g., "750 mL", "12 fl oz")
-- **OCR Provider:** Choose between Tesseract.js (client-side) or Google Cloud Vision API (server-side)
+- **OCR Provider:** Choose between Tesseract.js (client-side), Google Cloud Vision API (server-side), or Google AI Studio (Gemini AI)
 
 ### Step 2: Upload Label Image
 - Drag and drop an image file or click to browse
@@ -132,7 +132,13 @@ interface TTBFormData {
   productClass: string;
   alcoholContent: number;
   netContents?: string;
+  ocrProvider?: OCRProvider;
 }
+```
+
+#### `OCRProvider`
+```typescript
+type OCRProvider = 'tesseract' | 'google-cloud-vision' | 'google-ai-studio';
 ```
 
 #### `VerificationResult`
@@ -219,6 +225,27 @@ GOOGLE_CLOUD_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.
 # Google Cloud Private Key (replace \n with actual newlines)
 GOOGLE_CLOUD_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
 ```
+
+#### For Google AI Studio (Gemini)
+Create a `.env.local` file with your Google AI Studio API key:
+
+```bash
+# Google AI Studio API Key
+GOOGLE_AI_API_KEY=your-api-key-here
+```
+
+#### Setting up Google AI Studio
+
+1. **Go to Google AI Studio**
+   - Visit [https://aistudio.google.com/](https://aistudio.google.com/)
+
+2. **Create API Key**
+   - Click on "Get API key" in the left sidebar
+   - Create a new API key or use an existing one
+
+3. **Copy API Key**
+   - Copy the generated API key
+   - Add it to your `.env.local` file as `GOOGLE_AI_API_KEY`
 
 #### Setting up Google Cloud Vision API
 
