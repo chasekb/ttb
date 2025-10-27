@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const mimeType = 'image/jpeg'; // Default to JPEG, could be enhanced to detect actual type
 
     // Prepare the request for Google AI Studio Gemini API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
 
     const requestBody = {
       contents: [
