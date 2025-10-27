@@ -1,7 +1,7 @@
 // Utility functions for text processing and verification
 
 export function normalizeText(text: string): string {
-  return text.toLowerCase().trim().replace(/[^\w\s]/g, '');
+  return text.replace(/\n/g, ' ').toLowerCase().trim().replace(/[^\w\s]/g, '');
 }
 
 export function extractAlcoholPercentage(text: string, expectedAlcohol?: number): number | null {
