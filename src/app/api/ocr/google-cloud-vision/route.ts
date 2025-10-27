@@ -17,9 +17,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for Google Cloud credentials
-    if (!process.env.GOOGLE_CLOUD_PROJECT_ID || !process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
+    if (!process.env.GOOGLE_CLOUD_PROJECT_ID || !process.env.GOOGLE_CLOUD_PRIVATE_KEY || !process.env.GOOGLE_CLOUD_CLIENT_EMAIL) {
       return NextResponse.json(
-        { error: 'Google Cloud Vision API credentials not configured' },
+        { 
+          error: 'Google Cloud Vision API credentials not configured. Please configure the following environment variables: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_PRIVATE_KEY, and GOOGLE_CLOUD_CLIENT_EMAIL.' 
+        },
         { status: 500 }
       );
     }

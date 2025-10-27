@@ -204,9 +204,11 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
       };
     } catch (error) {
       console.error('Google Cloud Vision OCR processing error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process the image with Google Cloud Vision. Please try again.';
       return {
         type: 'OCR_FAILED',
-        message: 'Failed to process the image with Google Cloud Vision. Please try again.',
+        message: errorMessage,
+        details: errorMessage,
       };
     }
   }
@@ -241,7 +243,19 @@ class GoogleCloudVisionProvider implements OCRProviderInterface {
     });
 
     if (!response.ok) {
-      throw new Error(`Google Cloud Vision API error: ${response.statusText}`);
+      // Extract detailed error message from response
+      let errorMessage = `Google Cloud Vision API error: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        // Extract error message directly from the error field
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (jsonError) {
+        // If response is not JSON, use status text
+        console.error('Failed to parse error response:', jsonError);
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
