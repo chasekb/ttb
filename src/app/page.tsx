@@ -35,8 +35,11 @@ export default function Home() {
         const result = verifyLabel(data, ocrResult);
         setVerificationResult(result);
       } else {
-        // Handle OCR error
-        setError(ocrResult.message);
+        // Handle OCR error - display full error details
+        const errorText = ocrResult.details 
+          ? `${ocrResult.message}\n\nDetails: ${ocrResult.details}`
+          : ocrResult.message;
+        setError(errorText);
       }
     } catch (err) {
       setError('An unexpected error occurred during processing.');
@@ -107,10 +110,10 @@ export default function Home() {
                 <div className="flex-shrink-0">
                   <span className="text-red-400 text-xl">⚠️</span>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-red-800 mb-2">Error</h3>
                   <div className="mt-2 text-sm text-red-700">
-                    <p>{error}</p>
+                    <p className="whitespace-pre-wrap break-words">{error}</p>
                   </div>
                 </div>
               </div>

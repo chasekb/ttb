@@ -103,9 +103,11 @@ class GoogleAIStudioProvider implements OCRProviderInterface {
       };
     } catch (error) {
       console.error('Google AI Studio OCR processing error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process the image with Google AI Studio. Please try again.';
       return {
         type: 'OCR_FAILED',
-        message: 'Failed to process the image with Google AI Studio. Please try again.',
+        message: errorMessage,
+        details: errorMessage,
       };
     }
   }
@@ -136,7 +138,22 @@ class GoogleAIStudioProvider implements OCRProviderInterface {
     });
 
     if (!response.ok) {
-      throw new Error(`Google AI Studio API error: ${response.statusText}`);
+      // Extract detailed error message from response
+      let errorMessage = `Google AI Studio API error: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.details) {
+          errorMessage = errorData.details;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (jsonError) {
+        // If response is not JSON, use status text
+        console.error('Failed to parse error response:', jsonError);
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

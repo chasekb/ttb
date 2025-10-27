@@ -48,4 +48,6 @@ export interface VerificationResult {
 export interface ProcessingError {
   type: 'OCR_FAILED' | 'INVALID_IMAGE' | 'NO_TEXT_FOUND';
   message: string;
+  details?: string;
+  errorData?: any;
 }
