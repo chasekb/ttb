@@ -92,7 +92,7 @@ describe('/api/ocr/google-ai-studio', () => {
     expect(data.text).toBe('Sample extracted text from image');
     expect(data.confidence).toBe(0.9);
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=test-api-key',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=test-api-key',
       expect.objectContaining({
         method: 'POST',
         headers: {
