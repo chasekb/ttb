@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
     // Import and initialize Vision API client
     const { ImageAnnotatorClient } = await import('@google-cloud/vision');
     const client = new ImageAnnotatorClient({
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID!,
       credentials: {
-        client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL!,
+        private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY!.replace(/\\n/g, '\n'),
       },
     });
 
