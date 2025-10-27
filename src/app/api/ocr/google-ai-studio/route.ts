@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
       : 'image/png'; // Default fallback to PNG since that's what we're testing with
 
     // Prepare the request for Google AI Studio Gemini API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
+    // Using gemini-1.0-pro which supports vision capabilities
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`;
 
     const requestBody = {
       contents: [
